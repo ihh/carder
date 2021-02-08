@@ -1,0 +1,39 @@
+/* Desktop view */
+@media (min-width:600px) and (max-height:600px) {
+    .carder .statbar {
+	min-height: 15vh;
+    }
+}
+
+@media (min-width:600px) and (min-height:600px) {
+    .carder .statbar {
+	min-height: 90px;
+    }
+}
+
+@media (min-width:600px) {
+    .carder,
+    .carder-browser-wrap {
+	width: 600px;
+	max-width: 600px;
+	height: 100%;
+    }
+
+    .carder {
+	display: flex;
+	flex-direction: column;
+    }
+
+    .carder .statbar {
+	height: 15vh;
+	max-height: 90px;
+    }
+
+    .carder .banner .meter,
+    .carder .statbar .staticon {
+	width: 15vh;
+	height: 15vh;
+	max-width: 90px;
+	max-height: 90px;
+    }
+}

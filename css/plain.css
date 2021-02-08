@@ -1,0 +1,36 @@
+/* Colors, plain theme */
+.carder-page.plain {
+    background-color: white;
+}
+
+.carder.plain {
+    background-color: #f8f8f8;
+    color: black;
+}
+
+.carder.plain svg {
+    fill: black;
+}
+
+.carder.plain .banner {
+    background-color: white;
+}
+
+.carder.plain .statbar {
+    background-color: black;
+}
+
+.carder.plain .statbar .statlabel {
+    background-color: rgba(0,0,0,.5);
+    color: white;
+}
+
+/* Meters */
+.carder .meter .icon.empty svg {
+    fill: black;
+    opacity: .2;
+}
+
+.carder .meter .icon.full svg {
+    fill: green;
+}
