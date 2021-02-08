@@ -425,3 +425,16 @@ input {
 .carder .small .rightchoicebadge {
     right: .7vh;
 }
+
+.carder .stack .card {
+/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#f9f6e3+0,c9c190+60,b7ad70+100 */
+background: rgb(249,246,227); /* Old browsers */
+background: -moz-linear-gradient(-45deg, rgba(249,246,227,1) 0%, rgba(201,193,144,1) 60%, rgba(183,173,112,1) 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(-45deg, rgba(249,246,227,1) 0%,rgba(201,193,144,1) 60%,rgba(183,173,112,1) 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(135deg, rgba(249,246,227,1) 0%,rgba(201,193,144,1) 60%,rgba(183,173,112,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f9f6e3', endColorstr='#b7ad70',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    border-color: #000;
+    -webkit-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+    -moz-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+    box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+}

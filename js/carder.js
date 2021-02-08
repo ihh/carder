@@ -16,16 +16,26 @@ const Carder = (() => {
                .append (this.container,
                         $('<div class="carder-browser-statbar-pad">')))
 
+    // prevent scrolling/viewport bump on iOS Safari
+    document.addEventListener ('touchmove', function(e){
+      e.preventDefault()
+    }, {passive: false})
+
     // initialize the swing Stack
     this.stack = swing.Stack ({ throwOutConfidence: carder.throwOutConfidence,
 			        throwOutDistance: function() { return carder.throwXOffset() },
 			        allowedDirections: [
 				  swing.Direction.LEFT,
-				  swing.Direction.RIGHT,
-				  swing.Direction.UP,
-				  swing.Direction.DOWN
+				  swing.Direction.RIGHT
 			        ],
                                 isThrowOut: carder.isThrowOut.bind(carder) })
+
+    
+    // test
+    this.dealCard()
+    
+    // return from constructor
+    return this
   }
 
   $.extend (Carder.prototype, {
@@ -38,14 +48,15 @@ const Carder = (() => {
                     swipeleft: 'left-swipe-arrow',
                     swiperight: 'right-swipe-arrow' },
     throwOutConfidenceThreshold: .25,
+    doAnimationsOnDesktop: true,
     
     // helpers
     isTouchDevice: function() {
       return 'ontouchstart' in document.documentElement
     },
 
-    useThrowAnimations: function() {
-      return this.isTouchDevice()
+    doAnimations: function() {
+      return this.doAnimationsOnDesktop || this.isTouchDevice()
     },
     
     throwXOffset: function() {
@@ -54,6 +65,10 @@ const Carder = (() => {
 
     throwYOffset: function() {
       return this.container.height() / 4
+    },
+
+    throwOutConfidence: function (xOffset, yOffset, element) {
+      return Math.min (Math.max (Math.abs(xOffset) / element.offsetWidth, Math.abs(yOffset) / element.offsetHeight), 1)
     },
 
     inPortraitMode: function() {
@@ -117,13 +132,14 @@ const Carder = (() => {
                       dataType: 'text' })
     },
 
-    dealCard: function() {
+    dealCard: function (config) {
       let carder = this
+      config = config || {}
       carder.messageBodyDiv = $('<div class="messagebody">')
-      let choiceTextDiv = $('<div class="choicetext">').html ('<b>Choice card:</b> Swipe left to reject, right to accept.')
+      let choiceTextDiv = $('<div class="choicetext">')
       let innerDiv = $('<div class="inner">').append (carder.messageBodyDiv, choiceTextDiv)
-      let cardDiv = $('<div class="card">').append (expansionRow, innerDiv)
-      if (wm.isTouchDevice())
+      let cardDiv = $('<div class="card">').append (innerDiv)
+      if (carder.doAnimations())
         cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
 
       // create the swing card object for the compose card
@@ -142,12 +158,56 @@ const Carder = (() => {
         cardDiv.removeClass('dragging').addClass('throwing')
       })
 
+      carder.currentCardDiv = cardDiv
+      
       cardDiv.hide()
+      let stackReadyPromise = config.stackReady || $.Deferred().resolve()
+      return stackReadyPromise
+	.then (function() {
+          carder.stackDiv.html (cardDiv)
+          cardDiv.show()
+          carder.stopDrag()
+	  // throw-in effect
+	  if (carder.doAnimations() && !config.noThrowIn) {
+            carder.startThrow (cardDiv)
+            card.throwIn (0, -carder.throwYOffset())
+          }
+          if (carder.nextDealPromise)
+            carder.nextDealPromise.resolve()
+          carder.nextDealPromise = $.Deferred()
+          return cardDiv
+        })
+    },
+    
+    startThrow: function (cardDiv) {
+      var carder = this
+      cardDiv = cardDiv || carder.currentCardDiv
+      if (carder.throwArrowContainer)
+        carder.throwArrowContainer.removeClass('dragging').addClass('throwing').show()
+      if (cardDiv)
+        cardDiv.removeClass('dragging').addClass('throwing')
+    },
 
+    startDrag: function (cardDiv) {
+      var carder = this
+      cardDiv = cardDiv || carder.currentCardDiv
+      if (carder.throwArrowContainer)
+        carder.throwArrowContainer.removeClass('throwing').addClass('dragging').show()
+      if (cardDiv)
+        cardDiv.removeClass('throwing').addClass('dragging')
+    },
+
+    stopDrag: function (cardDiv) {
+      var carder = this
+      cardDiv = cardDiv || carder.currentCardDiv
+      if (carder.throwArrowContainer)
+        carder.throwArrowContainer.removeClass('throwing').removeClass('dragging').removeClass('leftdrag').removeClass('rightdrag').show()
+      if (cardDiv)
+        cardDiv.removeClass('throwing').removeClass('dragging')
     },
 
     dragListener: function (showPreview, swingEvent) {
-      var carder = this
+      let carder = this
       // swingEvent is a Hammer panmove event, decorated by swing
       carder.throwArrowContainer.removeClass('leftdrag').removeClass('rightdrag')
       if (swingEvent.throwDirection === swing.Direction.LEFT) {
@@ -159,21 +219,21 @@ const Carder = (() => {
       } else
         previewComposition = carder.composition
       if (showPreview) {
-        var previewDirection = (swingEvent.throwOutConfidence > carder.previewConfidenceThreshold
+        let previewDirection = (swingEvent.throwOutConfidence > carder.previewConfidenceThreshold
                                 ? swingEvent.throwDirection
                                 : undefined)
         if (carder.lastPreviewDirection !== previewDirection) {
-          var previewClass
-              if (previewDirection === swing.Direction.LEFT
-                  || (carder.standalone &&
-                      (previewDirection === swing.Direction.DOWN
-                       || previewDirection === swing.Direction.UP))) {
-                previewClass = 'reject'
-              } else if (previewDirection === swing.Direction.RIGHT) {
-                previewClass = 'accept'
-              } else {
-                previewClass = 'unknown'
-              }
+          let previewClass
+          if (previewDirection === swing.Direction.LEFT
+              || (carder.standalone &&
+                  (previewDirection === swing.Direction.DOWN
+                   || previewDirection === swing.Direction.UP))) {
+            previewClass = 'reject'
+          } else if (previewDirection === swing.Direction.RIGHT) {
+            previewClass = 'accept'
+          } else {
+            previewClass = 'unknown'
+          }
           carder.messageBodyDiv.find('.preview').hide()
           carder.messageBodyDiv.find('.preview-' + previewClass).show()
           carder.lastPreviewDirection = previewDirection
