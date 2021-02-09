@@ -246,15 +246,15 @@ const Carder = (() => {
     },
 
     getMeter: function (name) {
-      let level
-      this.meters.forEach ((meter) => {
-        if (meter.name === name)
-          level = meter.level
+      let meter
+      this.meters.forEach ((m) => {
+        if (m.name === name)
+          meter = m
       })
-      return level
+      return meter
     },
 
-    setMeter: function (name, level) {
+    setMeterLevel: function (name, level) {
       this.meters.forEach ((meter) => {
         if (meter.name === name)
           meter.level = level
@@ -282,6 +282,7 @@ const Carder = (() => {
             meterDiv
               .css (dim)
               .append (makeMeter())
+            meter.div = meterDiv
           })
       })
     }
