@@ -33,6 +33,9 @@ const Carder = (() => {
 			        ],
                                 isThrowOut: carder.isThrowOut.bind(carder) })
 
+    // listen for resize
+    $(document).on ('resize', carder.resizeListener.bind(carder))
+    $(window).on ('resize', carder.resizeListener.bind(carder))
     
     // return from constructor
     return this
@@ -136,6 +139,9 @@ const Carder = (() => {
       let carder = this
       config = config || {}
       let left = config.left || {}, right = config.right || {}
+
+      carder.drawMeters()
+      
       carder.cardBodyDiv = $('<div class="cardbody">')
       let cardDiv = $('<div class="card">')
           .html ($('<div class="inner">')
@@ -229,36 +235,23 @@ const Carder = (() => {
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
 
+    resizeListener: function() {
+      this.drawMeters()
+    },
+    
     addMeter: function (config) {
       let carder = this
       let promise = this.getIconPromise (config.icon)
       return promise.then (() => {
         carder.meters.push ({ name: config.name,
                               icon: promise,
-                              level: config.level || 0 })
+                              level: config.level || function() { return 0 } })
         carder.drawMeters()
       })
     },
 
     removeMeter: function (name) {
       this.meters = this.meters.filter ((meter) => meter.name !== name)
-      this.drawMeters()
-    },
-
-    getMeter: function (name) {
-      let meter
-      this.meters.forEach ((m) => {
-        if (m.name === name)
-          meter = m
-      })
-      return meter
-    },
-
-    setMeterLevel: function (name, level) {
-      this.meters.forEach ((meter) => {
-        if (meter.name === name)
-          meter.level = level
-      })
       this.drawMeters()
     },
     
@@ -277,7 +270,7 @@ const Carder = (() => {
                 .css (dim)
                 .append ($('<div class="icon empty">').css(dim).append($(svg)),
                          $('<div class="icon full">').css(dim).append($(svg))
-                         .css ('clip', 'rect(' + (1-meter.level)*height + 'px,100vw,100vh,0)'))
+                         .css ('clip', 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'))
             }
             meterDiv
               .css (dim)

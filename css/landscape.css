@@ -1,15 +1,10 @@
 /* Landscape view */
-@media all and (orientation:landscape) and (max-width:600px) {
+@media all and (orientation:landscape) and (max-width:800px) {
     /* Game view */
     .carder,
     .carder-browser-wrap {
 	width: 100%;
 	height: 100%;
-    }
-    
-    .carder {
-	display: flex;
-	flex-direction: column;
     }
 
     .carder .statbar {

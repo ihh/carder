@@ -1,14 +1,9 @@
 /* Portrait view */
-@media all and (orientation:portrait) and (max-width:600px) {
+@media all and (orientation:portrait) and (max-width:800px) {
     .carder,
     .carder-browser-wrap {
 	width: 100%;
 	max-width: 100%;
-    }
-
-    .carder {
-	display: flex;
-	flex-direction: column;
     }
 
     .carder .statbar {
