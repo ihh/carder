@@ -53,6 +53,8 @@ const Carder = (() => {
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
+    maxMeterScale: 1.25,
+    maxMeterShift: 10,
     
     // helpers
     isTouchDevice: function() {
@@ -163,8 +165,11 @@ const Carder = (() => {
       card.on ('throwinend', function() {
         carder.stopDrag()
       })
-      card.on ('dragmove', carder.dragListener.bind (carder, { left: config.left.preview || '',
-                                                               right: config.right.preview || '' }))
+      card.on ('dragmove', carder.dragListener.bind (carder,
+                                                     { preview: { left: config.left.preview || '',
+                                                                  right: config.right.preview || '' },
+                                                       meters: { left: config.left.meters || {},
+                                                                 right: config.right.meters || {} } }))
       card.on ('dragend', function() {
         carder.throwArrowContainer.removeClass('dragging').addClass('throwing')
         cardDiv.removeClass('dragging').addClass('throwing')
@@ -219,23 +224,52 @@ const Carder = (() => {
       carder.previewDiv.empty()
     },
 
-    dragListener: function (previewConfig, swingEvent) {
+    dragListener: function (dragConfig, swingEvent) {
       let carder = this
       // swingEvent is a Hammer panmove event, decorated by swing
       carder.throwArrowContainer.removeClass('leftdrag').removeClass('rightdrag')
       if (swingEvent.throwDirection === swing.Direction.LEFT) {
         carder.throwArrowContainer.addClass('leftdrag')
         carder.leftThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-        carder.previewDiv.html (previewConfig.left)
+        carder.previewDiv.html (dragConfig.preview.left)
+        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragConfig.meters.left)
       } else if (swingEvent.throwDirection === swing.Direction.RIGHT) {
         carder.throwArrowContainer.addClass('rightdrag')
         carder.rightThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-        carder.previewDiv.html (previewConfig.right)
-      } else
+        carder.previewDiv.html (dragConfig.preview.right)
+        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragConfig.meters.right)
+      } else {
         carder.previewDiv.empty()
+        carder.showMeterPreviews()
+      }
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
 
+    showMeterPreviews: function (confidence, meterScale) {
+      let carder = this
+      confidence = confidence || 0
+      meterScale = meterScale || {}
+      carder.meters.forEach ((meter) => {
+        const scale = meterScale[meter.name]
+        if (scale) {
+          meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
+          meter.div.css ('top', carder.maxMeterShift * scale * confidence + 'px')
+          if (scale > 0) {
+            meter.risingDiv.css ('opacity', confidence)
+            meter.fallingDiv.css ('opacity', 0)
+          } else {
+            meter.risingDiv.css ('opacity', 0)
+            meter.fallingDiv.css ('opacity', confidence)
+          }
+        } else {
+          meter.div.css ('transform', 'scale(1)')
+          meter.div.css ('top', '0')
+          meter.risingDiv.css ('opacity', 0)
+          meter.fallingDiv.css ('opacity', 0)
+        }
+      })
+    },
+    
     fadeCard: function (element, card) {
       let carder = this
       let fadedPromise = $.Deferred()
@@ -287,7 +321,7 @@ const Carder = (() => {
                     height: height + 'px' }
       this.statbar.empty()
       this.meters.forEach ((meter) => {
-        let meterDiv = $('<div class="meter">')
+        let meterDiv = $('<div class="meter">'), risingDiv, fallingDiv
         this.statbar.append (meterDiv)
         meter.icon
           .then (function (svg) {
@@ -296,12 +330,15 @@ const Carder = (() => {
                 .css (dim)
                 .append ($('<div class="icon empty">').css(dim).append($(svg)),
                          $('<div class="icon full">').css(dim).append($(svg))
-                         .css ('clip', 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'))
+                         .css ('clip', 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'),
+                         risingDiv = $('<div class="icon rising">').css(dim).append($(svg)),
+                         fallingDiv = $('<div class="icon falling">').css(dim).append($(svg))
+                        )
             }
             meterDiv
               .css (dim)
               .append (makeMeter())
-            meter.div = meterDiv
+            $.extend (meter, { div: meterDiv, risingDiv, fallingDiv })
           })
       })
     }

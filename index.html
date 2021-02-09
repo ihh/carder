@@ -24,11 +24,13 @@
 			left: {
 			  hint: 'left',
 			  preview: "I'm swiping left.",
+			  meters: { coins: -1 },
 			  cb: () => { coins *= .9; deal ('You swiped left') }
 			},
 			right: {
 			  hint: 'right',
 			  preview: "I'm swiping right.",
+			  meters: { castle: +1 },
 			  cb: () => { castle = 1 - (1 - castle) * .9; deal ('You swiped right') }
 			}
                       })

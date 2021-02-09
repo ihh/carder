@@ -34,7 +34,16 @@ body {
 .plain .carder .meter .icon.full svg {
     fill: yellow;
 }
+       
+.plain .carder .meter .icon.rising svg {
+    fill: green;
+}
 
+.plain .carder .meter .icon.falling svg {
+    fill: red;
+}
+
+/* Card table */
 .plain .carder .cardtable {
     background-color: darkgreen;  /* old browsers */
     background: linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);

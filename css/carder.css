@@ -73,6 +73,11 @@ input {
     left: 0;
 }
 
+.carder .meter .icon.rising,
+.carder .meter .icon.falling {
+    opacity: 0;
+}
+
 .carder .statbar .statlabel {
     display: inline;
     font-size: 1vh;
