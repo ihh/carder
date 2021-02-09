@@ -14,7 +14,8 @@ const Carder = (() => {
       .addClass("carder-page")
       .append ($('<div class="carder-browser-wrap">')
                .append (this.container,
-                        $('<div class="carder-browser-statbar-pad">')))
+                        $('<div class="carder-browser-preview-bar">')
+                        .html (this.previewDiv = $('<div class="carder-browser-preview">'))))
 
     // prevent scrolling/viewport bump on iOS Safari
     document.addEventListener ('touchmove', function(e){
@@ -31,9 +32,6 @@ const Carder = (() => {
                                 isThrowOut: carder.isThrowOut.bind(carder) })
 
     
-    // test
-    this.dealCard()
-    
     // return from constructor
     return this
   }
@@ -48,6 +46,7 @@ const Carder = (() => {
                     swipeleft: 'left-swipe-arrow',
                     swiperight: 'right-swipe-arrow' },
     throwOutConfidenceThreshold: .25,
+    previewConfidenceThreshold: .15,
     doAnimationsOnDesktop: true,
     
     // helpers
@@ -90,13 +89,13 @@ const Carder = (() => {
         .append ($('<div class="arrowstripe leftarrowstripe">')
                  .append (carder.leftThrowArrow
                           .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft', null, '#222')),
-                                   $('<div class="text">').text (config.leftText || ''))),
+                                   carder.leftThrowHint = $('<div class="text">'))),
                  $('<div class="arrowstripe">')
                  .html (hand.html (carder.makeIconButton ('swipe'))),
                  $('<div class="arrowstripe rightarrowstripe">')
                  .append (carder.rightThrowArrow
                           .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight', null, '#222')),
-                                   $('<div class="text">').text (config.rightText || ''))))
+                                   carder.rightThrowHint = $('<div class="text">'))))
       return carder.throwArrowContainer
     },
 
@@ -135,24 +134,29 @@ const Carder = (() => {
     dealCard: function (config) {
       let carder = this
       config = config || {}
-      carder.messageBodyDiv = $('<div class="messagebody">')
-      let choiceTextDiv = $('<div class="choicetext">')
-      let innerDiv = $('<div class="inner">').append (carder.messageBodyDiv, choiceTextDiv)
-      let cardDiv = $('<div class="card">').append (innerDiv)
+      let left = config.left || {}, right = config.right || {}
+      carder.cardBodyDiv = $('<div class="cardbody">')
+      let cardDiv = $('<div class="card">')
+          .html ($('<div class="inner">')
+                 .html (config.html))
       if (carder.doAnimations())
         cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
 
-      // create the swing card object for the compose card
-      let card = carder.stack.createCard (cardDiv[0]), reject
-      card.on ('throwoutleft', carder.dealCard.bind (carder))
-      card.on ('throwoutright', carder.dealCard.bind (carder))
+      carder.leftThrowHint.text (left.hint || '')
+      carder.rightThrowHint.text (right.hint || '')
+      
+      // create the swing card object for the DOM element
+      let card = carder.stack.createCard (cardDiv[0])
+      card.on ('throwoutleft', left.cb || function(){})
+      card.on ('throwoutright', right.cb || function(){})
       card.on ('dragstart', function() {
         carder.startDrag()
       })
       card.on ('throwinend', function() {
         carder.stopDrag()
       })
-      card.on ('dragmove', carder.dragListener.bind (carder, true))
+      card.on ('dragmove', carder.dragListener.bind (carder, { left: config.left.preview || '',
+                                                               right: config.right.preview || '' }))
       card.on ('dragend', function() {
         carder.throwArrowContainer.removeClass('dragging').addClass('throwing')
         cardDiv.removeClass('dragging').addClass('throwing')
@@ -204,10 +208,12 @@ const Carder = (() => {
         carder.throwArrowContainer.removeClass('throwing').removeClass('dragging').removeClass('leftdrag').removeClass('rightdrag').show()
       if (cardDiv)
         cardDiv.removeClass('throwing').removeClass('dragging')
+      carder.previewDiv.empty()
     },
 
-    dragListener: function (showPreview, swingEvent) {
+    dragListener: function (previewConfig, swingEvent) {
       let carder = this
+      console.warn(previewConfig)
       // swingEvent is a Hammer panmove event, decorated by swing
       carder.throwArrowContainer.removeClass('leftdrag').removeClass('rightdrag')
       if (swingEvent.throwDirection === swing.Direction.LEFT) {
@@ -216,29 +222,18 @@ const Carder = (() => {
       } else if (swingEvent.throwDirection === swing.Direction.RIGHT) {
         carder.throwArrowContainer.addClass('rightdrag')
         carder.rightThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-      } else
-        previewComposition = carder.composition
-      if (showPreview) {
-        let previewDirection = (swingEvent.throwOutConfidence > carder.previewConfidenceThreshold
-                                ? swingEvent.throwDirection
-                                : undefined)
-        if (carder.lastPreviewDirection !== previewDirection) {
-          let previewClass
-          if (previewDirection === swing.Direction.LEFT
-              || (carder.standalone &&
-                  (previewDirection === swing.Direction.DOWN
-                   || previewDirection === swing.Direction.UP))) {
-            previewClass = 'reject'
-          } else if (previewDirection === swing.Direction.RIGHT) {
-            previewClass = 'accept'
-          } else {
-            previewClass = 'unknown'
-          }
-          carder.messageBodyDiv.find('.preview').hide()
-          carder.messageBodyDiv.find('.preview-' + previewClass).show()
-          carder.lastPreviewDirection = previewDirection
-        }
       }
+      let previewDirection = (swingEvent.throwOutConfidence > carder.previewConfidenceThreshold
+                              ? swingEvent.throwDirection
+                              : undefined)
+      if (previewDirection === swing.Direction.LEFT) {
+        carder.previewDiv.html (previewConfig.left)
+      } else if (previewDirection === swing.Direction.RIGHT) {
+        carder.previewDiv.html (previewConfig.right)
+      } else {
+        carder.previewDiv.empty()
+      }
+      carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
 
   })

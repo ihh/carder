@@ -38,8 +38,16 @@ input {
     flex-direction: column;
 }
 
-.carder-browser-statbar-pad {
+.carder-browser-preview-bar {
     height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.carder-browser-preview {
+    font-size: 2vh;
+    text-align: center;
 }
 
 .carder {
@@ -102,9 +110,24 @@ input {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
     border-radius: 2vh;
     border-width: 1px;
     border-style: solid;
+}
+
+.carder .stack .card .inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    text-align: center;
+    overflow-y: hidden;
+
+    font-size: 3vh;
+    line-height: 3.75vh;
+
+    margin: 4px;
 }
 
 .carder .stack .dragging {
@@ -373,13 +396,6 @@ input {
     opacity: 0;
 }
 
-.carder .inner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
 .carder .cardcontrols .button svg,
 .carder .cardcontrols .button svg {
     width: 20px;
@@ -437,4 +453,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f9f6e3', end
     -webkit-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
     -moz-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
     box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+}
+
+.carder .stack .card.dragging {
+    -webkit-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
+    -moz-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
+    box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
 }

@@ -16,6 +16,22 @@
       let c
       $(document).ready (() => {
 	c = new Carder ({ parent: "carder" })
+	function deal (message) {
+	  message = message || '<i>Demo card</i>'
+	  c.dealCard ({ html: message,
+			left: {
+			  hint: 'left',
+			  preview: "I'm swiping left.",
+			  cb: deal.bind (null, 'You swiped left')
+			},
+			right: {
+			  hint: 'right',
+			  preview: "I'm swiping right.",
+			  cb: deal.bind (null, 'You swiped right')
+			}
+                      })
+	}
+	deal()
       })
     </script>
   </body>
