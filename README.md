@@ -28,3 +28,5 @@ $(document).ready (() => {
 }
 deal()
 ~~~~
+
+Icons from https://game-icons.net/
