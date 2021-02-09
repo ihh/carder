@@ -6,16 +6,17 @@ const Carder = (() => {
               { iconPromise: {},
                 svg: {} })
     this.container = $('<div class="carder">')
-      .addClass (this.defaultTheme)
       .append (this.statbar = $('<div class="statbar">'),
-               this.stackDiv = $('<div class="stack">'),
-               this.makeThrowArrowContainer())
+               $('<div class="cardbar">')
+               .html ($('<div class="cardtable">')
+                      .html (this.stackDiv = $('<div class="stack">'))),
+               this.makeThrowArrowContainer(),
+               this.previewDiv = $('<div class="preview">'))
     this.pageContainer = $('#'+(config.parent || this.parent))
       .addClass("carder-page")
+      .addClass (this.defaultTheme)
       .append ($('<div class="carder-browser-wrap">')
-               .append (this.container,
-                        $('<div class="carder-browser-preview-bar">')
-                        .html (this.previewDiv = $('<div class="carder-browser-preview">'))))
+               .append (this.container))
 
     // prevent scrolling/viewport bump on iOS Safari
     document.addEventListener ('touchmove', function(e){

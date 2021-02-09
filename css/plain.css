@@ -1,36 +1,48 @@
 /* Colors, plain theme */
-.carder-page.plain {
-    background-color: white;
+.plain.carder-page {
+    background-color: gray;
 }
 
-.carder.plain {
+.plain .carder {
     background-color: #f8f8f8;
     color: black;
 }
 
-.carder.plain svg {
+.plain .carder svg {
     fill: black;
 }
 
-.carder.plain .banner {
-    background-color: white;
-}
-
-.carder.plain .statbar {
+.plain .carder {
     background-color: black;
 }
 
-.carder.plain .statbar .statlabel {
+.plain .carder .statbar .statlabel {
     background-color: rgba(0,0,0,.5);
     color: white;
 }
 
 /* Meters */
-.carder .meter .icon.empty svg {
+.plain .carder .meter .icon.empty svg {
     fill: black;
     opacity: .2;
 }
 
-.carder .meter .icon.full svg {
+.plain .carder .meter .icon.full svg {
     fill: green;
+}
+
+.plain .carder .cardbar {
+    background-color: black;
+}
+
+.plain .carder .cardtable {
+    background-color: darkgreen;  /* old browsers */
+    background: linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
+    background: -webkit-linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
+    background: -moz-linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
+    box-shadow: 2px 2px 1px 1px #003200;
+}
+
+.plain .carder .preview {
+    color: white;
 }
