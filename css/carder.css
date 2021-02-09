@@ -48,6 +48,13 @@ input {
     text-align: center;
 }
 
+.carder-top-pad {
+}
+
+.carder-bottom-pad {
+    min-height: 100px;
+}
+
 .carder {
     position: relative;
     flex-grow: 1;
@@ -98,7 +105,6 @@ input {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1;
     cursor: pointer;
     pointer-events: none;
     opacity: 0;
@@ -112,7 +118,7 @@ input {
     display: flex;
     flex-direction: column;
 
-    padding: 20px;
+    padding: 4px 20px;
 }
 
 .carder .cardtable {
@@ -136,11 +142,12 @@ input {
 }
 
 .carder .stack .card {
+    position:relative;
     max-height: 160vw;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    overflow: hidden;
     border-radius: 2vh;
     border-width: 1px;
     border-style: solid;
@@ -150,9 +157,13 @@ input {
     position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
+
+    height: 0;
+    min-height: 100%;
 
     text-align: center;
-    overflow-y: hidden;
+    overflow: hidden;
 
     font-size: 3vh;
     line-height: 3.75vh;

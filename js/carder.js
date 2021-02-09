@@ -17,7 +17,9 @@ const Carder = (() => {
       .addClass("carder-page")
       .addClass (this.defaultTheme)
       .append ($('<div class="carder-browser-wrap">')
-               .append (this.container))
+               .append ($('<div class="carder-top-pad">'),
+                        this.container,
+                        $('<div class="carder-bottom-pad">')))
 
     // prevent scrolling/viewport bump on iOS Safari
     document.addEventListener ('touchmove', function(e){
@@ -148,7 +150,8 @@ const Carder = (() => {
       carder.cardBodyDiv = $('<div class="cardbody">')
       let cardDiv = $('<div class="card">')
           .html ($('<div class="inner">')
-                 .html (config.html))
+                 .html ($('<div class="content">')
+                        .html (config.html)))
       if (carder.doAnimations())
         cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
 
@@ -253,7 +256,7 @@ const Carder = (() => {
         const scale = meterScale[meter.name]
         if (scale) {
           meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
-          meter.div.css ('top', carder.maxMeterShift * scale * confidence + 'px')
+          meter.div.css ('top', -carder.maxMeterShift * scale * confidence + 'px')
           if (scale > 0) {
             meter.risingDiv.css ('opacity', confidence)
             meter.fallingDiv.css ('opacity', 0)
@@ -275,6 +278,7 @@ const Carder = (() => {
       let fadedPromise = $.Deferred()
       element.find('*').off()
       card.destroy()
+      carder.showMeterPreviews()  // reset previews
       const removeCard = function() {
 	element.remove()
         fadedPromise.resolve()
@@ -323,17 +327,16 @@ const Carder = (() => {
       this.meters.forEach ((meter) => {
         let meterDiv = $('<div class="meter">'), risingDiv, fallingDiv
         this.statbar.append (meterDiv)
+        const clipRect = 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'
         meter.icon
           .then (function (svg) {
             function makeMeter() {
               return $('<div class="icons">')
                 .css (dim)
                 .append ($('<div class="icon empty">').css(dim).append($(svg)),
-                         $('<div class="icon full">').css(dim).append($(svg))
-                         .css ('clip', 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'),
-                         risingDiv = $('<div class="icon rising">').css(dim).append($(svg)),
-                         fallingDiv = $('<div class="icon falling">').css(dim).append($(svg))
-                        )
+                         $('<div class="icon full">').css(dim).append($(svg)).css('clip',clipRect),
+                         risingDiv = $('<div class="icon rising">').css(dim).append($(svg)).css('clip',clipRect),
+                         fallingDiv = $('<div class="icon falling">').css(dim).append($(svg)).css('clip',clipRect))
             }
             meterDiv
               .css (dim)

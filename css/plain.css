@@ -1,5 +1,7 @@
 /* Colors, plain theme */
-body {
+body,
+.plain .carder-top-pad,
+.plain .carder-bottom-pad {
     background-color: black;
 }
 
