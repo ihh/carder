@@ -1,17 +1,17 @@
 /* Desktop view */
-@media (min-width:800px) and (max-height:600px) {
+@media (min-device-width:800px) and (max-device-height:600px) {
     .carder .statbar {
 	min-height: 15vh;
     }
 }
 
-@media (min-width:800px) and (min-height:600px) {
+@media (min-device-width:800px) and (min-device-height:600px) {
     .carder .statbar {
 	min-height: 90px;
     }
 }
 
-@media (min-width:800px) {
+@media (min-device-width:800px) {
     .carder,
     .carder-browser-wrap {
 	width: 800px;

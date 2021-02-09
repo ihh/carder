@@ -51,6 +51,7 @@ const Carder = (() => {
                     swipeleft: 'left-swipe-arrow',
                     swiperight: 'right-swipe-arrow' },
     throwOutConfidenceThreshold: .25,
+    cardFadeTime: 300,
     doAnimationsOnDesktop: true,
     
     // helpers
@@ -154,8 +155,8 @@ const Carder = (() => {
       
       // create the swing card object for the DOM element
       let card = carder.stack.createCard (cardDiv[0])
-      card.on ('throwoutleft', left.cb || function(){})
-      card.on ('throwoutright', right.cb || function(){})
+      card.on ('throwoutleft', carder.faderCallback (cardDiv, card, left.cb))
+      card.on ('throwoutright', carder.faderCallback (cardDiv, card, right.cb))
       card.on ('dragstart', function() {
         carder.startDrag()
       })
@@ -235,6 +236,31 @@ const Carder = (() => {
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
 
+    fadeCard: function (element, card) {
+      let carder = this
+      let fadedPromise = $.Deferred()
+      element.find('*').off()
+      card.destroy()
+      const removeCard = function() {
+	element.remove()
+        fadedPromise.resolve()
+      }
+      if (carder.doAnimations())
+        element.fadeOut (carder.cardFadeTime, removeCard)
+      else
+        removeCard()
+      return fadedPromise
+    },
+
+    faderCallback: function (element, card, cb) {
+      let carder = this
+      return function() {
+        let faded = carder.fadeCard (element, card)
+        if (cb)
+          faded.then (cb)
+      }
+    },
+    
     resizeListener: function() {
       this.drawMeters()
     },

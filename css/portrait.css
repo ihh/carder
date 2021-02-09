@@ -1,5 +1,5 @@
 /* Portrait view */
-@media all and (orientation:portrait) and (max-width:800px) {
+@media all and (orientation:portrait) and (max-device-width:800px) {
     .carder,
     .carder-browser-wrap {
 	width: 100%;

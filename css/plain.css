@@ -1,4 +1,8 @@
 /* Colors, plain theme */
+body {
+    background-color: black;
+}
+
 .plain.carder-page {
     background-color: gray;
 }
