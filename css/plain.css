@@ -23,7 +23,7 @@
 
 /* Meters */
 .plain .carder .meter .icon.empty svg {
-    fill: black;
+    fill: gray;
     opacity: .2;
 }
 

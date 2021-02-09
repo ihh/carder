@@ -58,13 +58,17 @@ input {
     position: relative;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
-.carder .statbar .staticon {
+.carder .statbar .meter {
     position: relative;
-    display: flex;
-    flex-direction: column;
+}
+
+.carder .statbar .meter .icons .icon {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .carder .statbar .statlabel {

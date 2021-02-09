@@ -185,7 +185,7 @@ const Carder = (() => {
     },
     
     startThrow: function (cardDiv) {
-      var carder = this
+      let carder = this
       cardDiv = cardDiv || carder.currentCardDiv
       if (carder.throwArrowContainer)
         carder.throwArrowContainer.removeClass('dragging').addClass('throwing').show()
@@ -194,7 +194,7 @@ const Carder = (() => {
     },
 
     startDrag: function (cardDiv) {
-      var carder = this
+      let carder = this
       cardDiv = cardDiv || carder.currentCardDiv
       if (carder.throwArrowContainer)
         carder.throwArrowContainer.removeClass('throwing').addClass('dragging').show()
@@ -203,7 +203,7 @@ const Carder = (() => {
     },
 
     stopDrag: function (cardDiv) {
-      var carder = this
+      let carder = this
       cardDiv = cardDiv || carder.currentCardDiv
       if (carder.throwArrowContainer)
         carder.throwArrowContainer.removeClass('throwing').removeClass('dragging').removeClass('leftdrag').removeClass('rightdrag').show()
@@ -247,6 +247,8 @@ const Carder = (() => {
 
     drawMeters: function() {
       const height = this.statbar.height()
+      const dim = { width: height + 'px',
+                    height: height + 'px' }
       this.statbar.empty()
       this.meters.forEach ((meter) => {
         let meterDiv = $('<div class="meter">')
@@ -255,11 +257,14 @@ const Carder = (() => {
           .then (function (svg) {
             function makeMeter() {
               return $('<div class="icons">')
-                .append ($('<div class="icon empty">').append ($(svg)),
-                         $('<div class="icon full">').append ($(svg))
+                .css (dim)
+                .append ($('<div class="icon empty">').css(dim).append($(svg)),
+                         $('<div class="icon full">').css(dim).append($(svg))
                          .css ('clip', 'rect(' + (1-meter.level)*height + 'px,100vw,100vh,0)'))
             }
-            meterDiv.append (makeMeter())
+            meterDiv
+              .css (dim)
+              .append (makeMeter())
           })
       })
     }
