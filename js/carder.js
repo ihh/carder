@@ -46,7 +46,6 @@ const Carder = (() => {
                     swipeleft: 'left-swipe-arrow',
                     swiperight: 'right-swipe-arrow' },
     throwOutConfidenceThreshold: .25,
-    previewConfidenceThreshold: .15,
     doAnimationsOnDesktop: true,
     
     // helpers
@@ -213,26 +212,18 @@ const Carder = (() => {
 
     dragListener: function (previewConfig, swingEvent) {
       let carder = this
-      console.warn(previewConfig)
       // swingEvent is a Hammer panmove event, decorated by swing
       carder.throwArrowContainer.removeClass('leftdrag').removeClass('rightdrag')
       if (swingEvent.throwDirection === swing.Direction.LEFT) {
         carder.throwArrowContainer.addClass('leftdrag')
         carder.leftThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
+        carder.previewDiv.html (previewConfig.left)
       } else if (swingEvent.throwDirection === swing.Direction.RIGHT) {
         carder.throwArrowContainer.addClass('rightdrag')
         carder.rightThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-      }
-      let previewDirection = (swingEvent.throwOutConfidence > carder.previewConfidenceThreshold
-                              ? swingEvent.throwDirection
-                              : undefined)
-      if (previewDirection === swing.Direction.LEFT) {
-        carder.previewDiv.html (previewConfig.left)
-      } else if (previewDirection === swing.Direction.RIGHT) {
         carder.previewDiv.html (previewConfig.right)
-      } else {
+      } else
         carder.previewDiv.empty()
-      }
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
 

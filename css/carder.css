@@ -40,6 +40,7 @@ input {
 
 .carder-browser-preview-bar {
     height: 80px;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
