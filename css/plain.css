@@ -28,11 +28,7 @@
 }
 
 .plain .carder .meter .icon.full svg {
-    fill: green;
-}
-
-.plain .carder .cardbar {
-    background-color: black;
+    fill: yellow;
 }
 
 .plain .carder .cardtable {

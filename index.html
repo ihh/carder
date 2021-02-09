@@ -16,6 +16,8 @@
       let c
       $(document).ready (() => {
 	c = new Carder ({ parent: "carder" })
+	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg' })
+	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: 0.5 })
 	function deal (message) {
 	  message = message || '<i>Demo card</i>'
 	  c.dealCard ({ html: message,

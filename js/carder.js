@@ -4,7 +4,8 @@ const Carder = (() => {
     config = config || {}
     $.extend (this,
               { iconPromise: {},
-                svg: {} })
+                svg: {},
+                meters: [] })
     this.container = $('<div class="carder">')
       .append (this.statbar = $('<div class="statbar">'),
                $('<div class="cardbar">')
@@ -105,7 +106,7 @@ const Carder = (() => {
                     : { iconName: iconName,
                         callback: callback,
                         color: color })
-      let iconFilename = config.iconFilename || this.iconFilename[config.iconName]
+      let iconFilename = config.iconFilename || (this.iconPrefix + this.iconFilename[config.iconName] + this.iconSuffix)
       let iconNameSpan = $('<span>').addClass('iconlabel').text (config.text || config.iconName || config.iconFilename)
       let button = $('<span>').addClass('button').html (iconNameSpan)
       this.getIconPromise (iconFilename)
@@ -126,8 +127,8 @@ const Carder = (() => {
       return this.iconPromise[icon]
     },
 
-    getIcon: function (icon) {
-      return $.get ({ url: this.iconPrefix + icon + this.iconSuffix,
+    getIcon: function (path) {
+      return $.get ({ url: path,
                       dataType: 'text' })
     },
 
@@ -227,6 +228,41 @@ const Carder = (() => {
         carder.previewDiv.empty()
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
     },
+
+    addMeter: function (config) {
+      let carder = this
+      let promise = this.getIconPromise (config.icon)
+      return promise.then (() => {
+        carder.meters.push ({ name: config.name,
+                              icon: promise,
+                              level: config.level || 0 })
+        carder.drawMeters()
+      })
+    },
+
+    removeMeter: function (name) {
+      this.meters = this.meters.filter ((meter) => meter.name !== name)
+      this.drawMeters()
+    },
+
+    drawMeters: function() {
+      const height = this.statbar.height()
+      this.statbar.empty()
+      this.meters.forEach ((meter) => {
+        let meterDiv = $('<div class="meter">')
+        this.statbar.append (meterDiv)
+        meter.icon
+          .then (function (svg) {
+            function makeMeter() {
+              return $('<div class="icons">')
+                .append ($('<div class="icon empty">').append ($(svg)),
+                         $('<div class="icon full">').append ($(svg))
+                         .css ('clip', 'rect(' + (1-meter.level)*height + 'px,100vw,100vh,0)'))
+            }
+            meterDiv.append (makeMeter())
+          })
+      })
+    }
 
   })
 
