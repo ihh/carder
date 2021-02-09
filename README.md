@@ -7,7 +7,7 @@ _a la_ "Rei*ns".
 
 ~~~~
 $(document).ready (() => {
-  c = new Carder ({ parent: "carder" })
+  c = new Carder ({ parent: "carder" })   // add to parent element with ID 'carder'
   let coins = 0.5, castle = 0.5
   c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
   c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
