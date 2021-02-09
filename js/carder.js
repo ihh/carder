@@ -245,6 +245,15 @@ const Carder = (() => {
       this.drawMeters()
     },
 
+    getMeter: function (name) {
+      let level
+      this.meters.forEach ((meter) => {
+        if (meter.name === name)
+          level = meter.level
+      })
+      return level
+    },
+
     setMeter: function (name, level) {
       this.meters.forEach ((meter) => {
         if (meter.name === name)
