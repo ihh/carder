@@ -1,7 +1,7 @@
 # carder
 
-A lightweight hack that takes @gajus' [Swing](https://github.com/gajus/swing)
-and adds some user interface elements (hints, meters)
+A lightweight hack that wraps Gajus Kuizinas' [Swing](https://github.com/gajus/swing)
+with some user interface elements (hints, meters)
 suitable for building a bare-bones card-swiping interactive fiction story,
 _a la_ "Rei*ns".
 
@@ -28,3 +28,5 @@ $(document).ready (() => {
 }
 deal()
 ~~~~
+
+Icons from https://game-icons.net/
