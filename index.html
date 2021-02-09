@@ -13,10 +13,9 @@
   <body>
     <div id="carder"/>
     <script>
-      let c
+      let c, coins = 0.5, castle = 0.5
       $(document).ready (() => {
 	c = new Carder ({ parent: "carder" })
-	let coins = 0.5, castle = 0.5
 	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
 	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
 	function deal (message) {
