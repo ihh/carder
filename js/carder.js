@@ -245,6 +245,14 @@ const Carder = (() => {
       this.drawMeters()
     },
 
+    setMeter: function (name, level) {
+      this.meters.forEach ((meter) => {
+        if (meter.name === name)
+          meter.level = level
+      })
+      this.drawMeters()
+    },
+    
     drawMeters: function() {
       const height = this.statbar.height()
       const dim = { width: height + 'px',
