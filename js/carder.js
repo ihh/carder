@@ -151,6 +151,7 @@ const Carder = (() => {
     dealCard: function (config) {
       let carder = this
       config = config || {}
+      this.currentCardConfig = $.extend ({}, config)
       let left = config.left || {}, right = config.right || {}
 
       carder.cardBodyDiv = $('<div class="cardbody">')
