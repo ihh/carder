@@ -5,7 +5,7 @@ with some user interface elements (hints, meters)
 suitable for building a bare-bones card-swiping interactive fiction story,
 _a la_ "Rei*ns".
 
-For a basic demo, see [here](https://ihh.github.io/carder/).
+For a basic demo (illustrating only the functionality, no content) see [here](https://ihh.github.io/carder/).
 
 ~~~~
 $(document).ready (() => {
