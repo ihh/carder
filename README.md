@@ -1,6 +1,6 @@
 # carder
 
-A lightweight hack that wraps Gajus Kuizinas' [Swing](https://github.com/gajus/swing)
+A lightweight project that wraps Gajus Kuizinas' [Swing](https://github.com/gajus/swing)
 with some user interface elements (hints, meters)
 suitable for building a bare-bones card-swiping interactive fiction story,
 _a la_ "Rei*ns".
@@ -15,7 +15,8 @@ $(document).ready (() => {
   c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
   function deal (message) {
     message = message || '<i>Demo card</i>'
-    c.dealCard ({ html: message,
+    c.dealCard ({
+      html: message,
       left: {
         hint: 'left',
         preview: "I'm swiping left.",
