@@ -157,7 +157,7 @@ const Carder = (() => {
       let innerDiv = $('<div class="inner">').html ($('<div class="content">').html (config.html))
       let cardDiv = $('<div class="card">').html (innerDiv)
       if (carder.doAnimations())
-        cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
+        cardDiv.addClass ('jiggle')
       
       // hack to work around Safari centering issue
       // https://stackoverflow.com/questions/66129945/prevent-child-element-from-stretching-parent-portable-solution-for-both-chrome/66130202
