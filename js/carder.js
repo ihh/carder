@@ -90,6 +90,11 @@ const Carder = (() => {
       return throwOutConfidence > this.throwOutConfidenceThreshold
     },
 
+    browserIsSafari: function() {
+      let ua = navigator.userAgent.toLowerCase()
+      return ua.indexOf('safari') !== -1
+    },
+    
     // builders
     makeThrowArrowContainer: function (config) {
       let carder = this
@@ -155,6 +160,13 @@ const Carder = (() => {
       let cardDiv = $('<div class="card">').html (innerDiv)
       if (carder.doAnimations())
         cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
+      
+      // hack to work around Safari centering issue
+      // https://stackoverflow.com/questions/66129945/prevent-child-element-from-stretching-parent-portable-solution-for-both-chrome/66130202
+      if (carder.browserIsSafari()) {
+        cardDiv.css ('height', '100%')
+        cardDiv.css ('min-height', '')
+      }
 
       carder.leftThrowHint.text (left.hint || '')
       carder.rightThrowHint.text (right.hint || '')
@@ -185,11 +197,7 @@ const Carder = (() => {
       carder.stackDiv.html (cardDiv)
       cardDiv.show()
 
-      carder.shrinkToFit (innerDiv, carder.maxCardTextShrink, () => {
-        cardDiv.css ('height', '100%')
-        cardDiv.css ('min-height', '')
-      })
-
+      carder.shrinkToFit (innerDiv, carder.maxCardTextShrink)
       carder.shrinkToFit (carder.leftThrowHint, carder.maxHintTextShrink)
       carder.shrinkToFit (carder.rightThrowHint, carder.maxHintTextShrink)
 
@@ -349,18 +357,16 @@ const Carder = (() => {
       })
     },
 
-    shrinkToFit: function (div, maxShrinkFactor, failCallback) {
+    shrinkToFit: function (div, maxShrinkFactor) {
       let factor = 1, multiplier = 1.1
       div.css('font-size','').css('line-height','')
-      const initFontSize = parseFloat (div.css('font-size')), initLineHeight = parseFloat (div.css('line-height'))
       const hasOverflow = () => div[0].scrollHeight > div[0].clientHeight || div[0].scrollWidth > div[0].clientWidth;
+      const initFontSize = parseFloat (div.css('font-size')), initLineHeight = parseFloat (div.css('line-height'))
       while (hasOverflow() && factor < maxShrinkFactor) {
         factor = Math.min (maxShrinkFactor, factor * multiplier)
         div.css ('font-size', (initFontSize / factor) + 'px')
         div.css ('line-height', (initLineHeight / factor) + 'px')
       }
-      if (failCallback && hasOverflow())
-        failCallback (div)
     },
 
   })
