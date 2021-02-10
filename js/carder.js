@@ -56,7 +56,6 @@ const Carder = (() => {
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
     maxMeterScale: 1.25,
-    maxMeterShift: 10,
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
@@ -267,7 +266,6 @@ const Carder = (() => {
         const scale = meterScale[meter.name]
         if (scale) {
           meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
-          meter.div.css ('top', -carder.maxMeterShift * scale * confidence + 'px')
           if (scale > 0) {
             meter.risingDiv.css ('opacity', confidence)
             meter.fallingDiv.css ('opacity', 0)
@@ -277,7 +275,6 @@ const Carder = (() => {
           }
         } else {
           meter.div.css ('transform', 'scale(1)')
-          meter.div.css ('top', '0')
           meter.risingDiv.css ('opacity', 0)
           meter.fallingDiv.css ('opacity', 0)
         }
