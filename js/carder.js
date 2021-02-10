@@ -55,9 +55,8 @@ const Carder = (() => {
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
-//    maxMeterScale: 1.25,
     meterAnimFrameDelay: 50,
-    meterAnimDecayRate: .5,
+    meterAnimFrames: 10,
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
@@ -154,8 +153,6 @@ const Carder = (() => {
       config = config || {}
       let left = config.left || {}, right = config.right || {}
 
-      carder.drawMeters()
-      
       carder.cardBodyDiv = $('<div class="cardbody">')
       let innerDiv = $('<div class="inner">').html ($('<div class="content">').html (config.html))
       let cardDiv = $('<div class="card">').html (innerDiv)
@@ -181,6 +178,7 @@ const Carder = (() => {
       })
       card.on ('throwinend', function() {
         carder.stopDrag()
+        carder.drawMeters()
       })
       card.on ('dragmove', carder.dragListener.bind (carder,
                                                      { preview: { left: config.left.preview || '',
@@ -267,19 +265,10 @@ const Carder = (() => {
       carder.meters.forEach ((meter) => {
         const scale = meterScale[meter.name]
         if (scale) {
-//          meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
-          if (scale > 0) {
-            meter.risingDiv.css ('opacity', confidence)
-            meter.fallingDiv.css ('opacity', 0)
-          } else {
-            meter.risingDiv.css ('opacity', 0)
-            meter.fallingDiv.css ('opacity', confidence)
-          }
-        } else {
-//          meter.div.css ('transform', 'scale(1)')
-          meter.risingDiv.css ('opacity', 0)
-          meter.fallingDiv.css ('opacity', 0)
-        }
+          meter.tintDiv.removeClass('rising falling')
+          meter.tintDiv.addClass(scale > 0 ? 'rising' : 'falling').css ('opacity', confidence)
+        } else
+          meter.tintDiv.css ('opacity', 0)
       })
     },
     
@@ -328,58 +317,79 @@ const Carder = (() => {
       this.drawMeters()
     },
 
-    // How this should work:
-    // drawMeters is called whenever a card is dealt or there's a resize
-    // It should request an animation frame
-    // There should only be one tintDiv (replacing risingDiv & fallingDiv), with class changed dynamically to 'rising' or 'falling'
-    // A separate, lightweight animation callback (animateMeters) should change the clipRect for levelDiv and tintDiv, and the class & opacity of tintDiv
-    // The opacity is determined by meter.tint, which starts at 1 (set by drawMeters) and is then halved each call to animateMeters
-    // drawMeters should check meters for level differences and, if there are any, set a timeout to call animateMeters
-    // meterClipRect should be a separate function
+    meterClipRect: function (meterHeight) {
+      return 'rect(' + meterHeight + 'px,100vw,100vh,0)'
+    },
+
+    meterHeight: function (meter) {
+      return (1 - meter.level()) * this.statbar.height()
+    },
+    
     drawMeters: function() {
-      let redrawNeeded = false
-      const height = this.statbar.height()
-      const dim = { width: height + 'px',
-                    height: height + 'px' }
-      this.statbar.empty()
-      this.meters.forEach ((meter) => {
-        let lastHeight = meter.lastHeight, targetHeight = (1 - meter.level()) * height, newHeight, delta = targetHeight - lastHeight, redrawThisMeter
-        if (typeof(lastHeight) === 'undefined' || Math.abs(delta) < 1)
-          newHeight = targetHeight
-        else {
-          newHeight = (lastHeight + targetHeight * this.meterAnimDecayRate) / (this.meterAnimDecayRate + 1)
-          redrawNeeded = redrawThisMeter = true
-        }
-        let meterDiv = $('<div class="meter">'), levelDiv, risingDiv, fallingDiv
-        this.statbar.append (meterDiv)
-        const clipRect = 'rect(' + newHeight + 'px,100vw,100vh,0)'
-        meter.icon
-          .then (function (svg) {
-            function makeMeter() {
-              return $('<div class="icons">')
-                .css (dim)
-                .append ($('<div class="icon empty">').css(dim).append($(svg)),
-                         levelDiv = $('<div class="icon full">').css(dim).append($(svg)).css('clip',clipRect),
-                         risingDiv = $('<div class="icon rising">').css(dim).append($(svg)).css('clip',clipRect),
-                         fallingDiv = $('<div class="icon falling">').css(dim).append($(svg)).css('clip',clipRect))
-            }
-            meterDiv
-              .css (dim)
-              .append (makeMeter())
-            if (redrawThisMeter) {
-              if (delta < 0) {
-                risingDiv.css ('opacity', 1)
-                fallingDiv.css ('opacity', 0)
-              } else if (delta > 0) {
-                risingDiv.css ('opacity', 0)
-                fallingDiv.css ('opacity', 1)
+      window.requestAnimationFrame (() => {
+        let redrawNeeded = false, newDivs = []
+        const height = this.statbar.height()
+        const dim = { width: height + 'px',
+                      height: height + 'px' }
+
+        this.meters.reduce ((redrawn, meter) => {
+          let initHeight = meter.lastHeight, targetHeight = this.meterHeight(meter), delta = targetHeight - initHeight, newHeight, tintClass = '', tint = 0
+          if (typeof(initHeight) === 'undefined' || Math.abs(delta) < 1) {
+            newHeight = targetHeight
+            tintClass = ''
+            tint = 0
+          } else {
+            newHeight = initHeight
+            tintClass = delta < 0 ? 'rising' : 'falling'
+            tint = 1
+            redrawNeeded = true
+          }
+          let meterDiv = $('<div class="meter">'), levelDiv, tintDiv
+          newDivs.push (meterDiv)
+          const clipRect = this.meterClipRect (newHeight)
+          return redrawn.then (() => {
+            meter.icon.then ((svg) => {
+              function makeMeter() {
+                return $('<div class="icons">')
+                  .css (dim)
+                  .append ($('<div class="icon empty">').css(dim).append($(svg)),
+                           levelDiv = $('<div class="icon full">').css(dim).append($(svg)).css('clip',clipRect),
+                           tintDiv = $('<div class="icon tint">').addClass(tintClass).css(dim).css('opacity',tint).append($(svg)).css('clip',clipRect))
               }
-            }
-            $.extend (meter, { div: meterDiv, levelDiv, risingDiv, fallingDiv, lastHeight: newHeight })
+              meterDiv
+                .css (dim)
+                .append (makeMeter())
+              $.extend (meter, { div: meterDiv, levelDiv, tintDiv, lastHeight: targetHeight, initHeight, targetHeight })
+            })
           })
+        }, $.Deferred().resolve()).then (() => {
+          this.statbar.html (newDivs)
+          if (redrawNeeded)
+            this.nextMeterAnimationFrame (this.meterAnimFrames)
+          else
+            this.meters.forEach ((meter) => meter.tintDiv.css('opacity',0))
+        })
       })
-      if (redrawNeeded)
-        window.setTimeout (this.drawMeters.bind(this), this.meterAnimFrameDelay)
+    },
+
+    nextMeterAnimationFrame: function (framesLeft) {
+      window.setTimeout (this.animateMeters.bind(this,framesLeft), this.meterAnimFrameDelay)
+    },
+
+    animateMeters: function (framesLeft) {
+      window.requestAnimationFrame (() => {
+        this.meters.forEach ((meter) => {
+          let { levelDiv, tintDiv, initHeight, targetHeight } = meter
+          if (initHeight !== targetHeight) {
+            let r = framesLeft / this.meterAnimFrames, newHeight = initHeight*r + targetHeight*(1-r), tint = r
+            let clipRect = this.meterClipRect (newHeight)
+            tintDiv.css ({ opacity: tint, clip: clipRect })
+            levelDiv.css ('clip', clipRect)
+          }
+        })
+        if (framesLeft > 0)
+          this.nextMeterAnimationFrame (framesLeft - 1)
+      })
     },
 
     shrinkToFit: function (div, maxShrinkFactor) {
