@@ -52,6 +52,7 @@ const Carder = (() => {
     iconFilename: { swipe: 'one-finger-contact-swipe',
                     swipeleft: 'left-swipe-arrow',
                     swiperight: 'right-swipe-arrow' },
+    defaultCardClass: 'basic',
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
@@ -154,7 +155,7 @@ const Carder = (() => {
 
       carder.cardBodyDiv = $('<div class="cardbody">')
       let innerDiv = $('<div class="inner">').html ($('<div class="content">').html (config.html))
-      let cardDiv = $('<div class="card">').html (innerDiv)
+      let cardDiv = $('<div class="card">').addClass (config.className || this.defaultCardClass).html (innerDiv)
       if (carder.doAnimations())
         cardDiv.addClass ('jiggle')
       
@@ -180,10 +181,10 @@ const Carder = (() => {
         carder.drawMeters()
       })
       card.on ('dragmove', carder.dragListener.bind (carder,
-                                                     { preview: { left: config.left.preview || '',
-                                                                  right: config.right.preview || '' },
-                                                       meters: { left: config.left.meters || {},
-                                                                 right: config.right.meters || {} } }))
+                                                     { preview: { left: left.preview || '',
+                                                                  right: right.preview || '' },
+                                                       meters: { left: left.meters || {},
+                                                                 right: right.meters || {} } }))
       card.on ('dragend', function() {
         carder.throwArrowContainer.removeClass('dragging').addClass('throwing')
         cardDiv.removeClass('dragging').addClass('throwing')

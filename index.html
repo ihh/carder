@@ -16,9 +16,9 @@
 	c = new Carder ({ parent: "carder" })
 	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
 	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
-	function deal (message) {
-	  message = message || '<i>Demo card</i>'
+	function deal (message, type) {
 	  c.dealCard ({ html: message,
+			className: type,
 			left: {
 			  hint: 'very long left hint text',
 			  preview: "It might be inadvisable under the present circumstances, but I'm thinking of swiping left. Again: It might be inadvisable under the present circumstances, but I'm thinking of swiping left. Third time lucky: It might be inadvisable under the present circumstances, but I'm thinking of swiping left. One more: It might be inadvisable under the present circumstances, but I'm thinking of swiping left.",
@@ -33,8 +33,8 @@
 			}
                       })
 	}
-//	deal()
-	let msg = ''; for (let n = 1; n <= 100; ++n) msg += ' long text ' + n; deal(msg)
+//	deal ('<i>Demo card</i>', 'title')
+	let msg = ''; for (let n = 1; n <= 100; ++n) msg += ' long text ' + n; deal(msg,'title')
       })
     </script>
   </body>
