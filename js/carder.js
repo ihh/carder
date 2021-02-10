@@ -123,7 +123,7 @@ const Carder = (() => {
                         color: color })
       let iconFilename = config.iconFilename || (this.iconPrefix + this.iconFilename[config.iconName] + this.iconSuffix)
       let iconNameSpan = $('<span>').addClass('iconlabel').text (config.text || config.iconName || config.iconFilename)
-      let button = $('<span>').addClass('button').html (iconNameSpan)
+      let button = $('<span>').addClass('button')
       this.getIconPromise (iconFilename)
         .done (function (svg) {
           let elem = $(svg)

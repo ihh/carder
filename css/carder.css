@@ -208,10 +208,6 @@ input {
     pointer-events: none;
 }
 
-.carder .arrowcontainer .button .iconlabel {
-    display: none;
-}
-
 .carder .arrowcontainer .arrowstripe {
     display: flex;
     flex-direction: column;
@@ -342,7 +338,7 @@ input {
     color: white;
 
     width: 8vh;
-    height: 3vh;
+    height: 5vh;
     overflow: hidden;
     white-space: nowrap;
 }
