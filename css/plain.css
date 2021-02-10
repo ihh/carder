@@ -1,12 +1,7 @@
 /* Colors, plain theme */
 body,
-.plain .carder-top-pad,
-.plain .carder-bottom-pad {
+.plain .carder-top-pad {
     background-color: black;
-}
-
-.plain.carder-page {
-    background-color: gray;
 }
 
 .plain .carder {
@@ -56,4 +51,23 @@ body,
 
 .plain .carder .preview {
     color: white;
+}
+
+/* Cards */
+.plain .carder .stack .card {
+background: rgb(249,246,227); /* Old browsers */
+background: -moz-linear-gradient(-45deg, rgba(249,246,227,1) 0%, rgba(201,193,144,1) 60%, rgba(183,173,112,1) 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(-45deg, rgba(249,246,227,1) 0%,rgba(201,193,144,1) 60%,rgba(183,173,112,1) 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(135deg, rgba(249,246,227,1) 0%,rgba(201,193,144,1) 60%,rgba(183,173,112,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f9f6e3', endColorstr='#b7ad70',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    border-color: #000;
+    -webkit-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+    -moz-box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+    box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
+}
+
+.carder .stack .card.dragging {
+    -webkit-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
+    -moz-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
+    box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
 }
