@@ -55,7 +55,9 @@ const Carder = (() => {
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
-    maxMeterScale: 1.25,
+//    maxMeterScale: 1.25,
+    meterAnimFrameDelay: 50,
+    meterAnimDecayRate: .5,
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
@@ -265,7 +267,7 @@ const Carder = (() => {
       carder.meters.forEach ((meter) => {
         const scale = meterScale[meter.name]
         if (scale) {
-          meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
+//          meter.div.css ('transform', 'scale(' + Math.pow (carder.maxMeterScale, scale * confidence) + ')')
           if (scale > 0) {
             meter.risingDiv.css ('opacity', confidence)
             meter.fallingDiv.css ('opacity', 0)
@@ -274,7 +276,7 @@ const Carder = (() => {
             meter.fallingDiv.css ('opacity', confidence)
           }
         } else {
-          meter.div.css ('transform', 'scale(1)')
+//          meter.div.css ('transform', 'scale(1)')
           meter.risingDiv.css ('opacity', 0)
           meter.fallingDiv.css ('opacity', 0)
         }
@@ -286,7 +288,6 @@ const Carder = (() => {
       let fadedPromise = $.Deferred()
       element.find('*').off()
       card.destroy()
-      carder.showMeterPreviews()  // reset previews
       const removeCard = function() {
 	element.remove()
         fadedPromise.resolve()
@@ -326,32 +327,59 @@ const Carder = (() => {
       this.meters = this.meters.filter ((meter) => meter.name !== name)
       this.drawMeters()
     },
-    
+
+    // How this should work:
+    // drawMeters is called whenever a card is dealt or there's a resize
+    // It should request an animation frame
+    // There should only be one tintDiv (replacing risingDiv & fallingDiv), with class changed dynamically to 'rising' or 'falling'
+    // A separate, lightweight animation callback (animateMeters) should change the clipRect for levelDiv and tintDiv, and the class & opacity of tintDiv
+    // The opacity is determined by meter.tint, which starts at 1 (set by drawMeters) and is then halved each call to animateMeters
+    // drawMeters should check meters for level differences and, if there are any, set a timeout to call animateMeters
+    // meterClipRect should be a separate function
     drawMeters: function() {
+      let redrawNeeded = false
       const height = this.statbar.height()
       const dim = { width: height + 'px',
                     height: height + 'px' }
       this.statbar.empty()
       this.meters.forEach ((meter) => {
-        let meterDiv = $('<div class="meter">'), risingDiv, fallingDiv
+        let lastHeight = meter.lastHeight, targetHeight = (1 - meter.level()) * height, newHeight, delta = targetHeight - lastHeight, redrawThisMeter
+        if (typeof(lastHeight) === 'undefined' || Math.abs(delta) < 1)
+          newHeight = targetHeight
+        else {
+          newHeight = (lastHeight + targetHeight * this.meterAnimDecayRate) / (this.meterAnimDecayRate + 1)
+          redrawNeeded = redrawThisMeter = true
+        }
+        let meterDiv = $('<div class="meter">'), levelDiv, risingDiv, fallingDiv
         this.statbar.append (meterDiv)
-        const clipRect = 'rect(' + (1-meter.level())*height + 'px,100vw,100vh,0)'
+        const clipRect = 'rect(' + newHeight + 'px,100vw,100vh,0)'
         meter.icon
           .then (function (svg) {
             function makeMeter() {
               return $('<div class="icons">')
                 .css (dim)
                 .append ($('<div class="icon empty">').css(dim).append($(svg)),
-                         $('<div class="icon full">').css(dim).append($(svg)).css('clip',clipRect),
+                         levelDiv = $('<div class="icon full">').css(dim).append($(svg)).css('clip',clipRect),
                          risingDiv = $('<div class="icon rising">').css(dim).append($(svg)).css('clip',clipRect),
                          fallingDiv = $('<div class="icon falling">').css(dim).append($(svg)).css('clip',clipRect))
             }
             meterDiv
               .css (dim)
               .append (makeMeter())
-            $.extend (meter, { div: meterDiv, risingDiv, fallingDiv })
+            if (redrawThisMeter) {
+              if (delta < 0) {
+                risingDiv.css ('opacity', 1)
+                fallingDiv.css ('opacity', 0)
+              } else if (delta > 0) {
+                risingDiv.css ('opacity', 0)
+                fallingDiv.css ('opacity', 1)
+              }
+            }
+            $.extend (meter, { div: meterDiv, levelDiv, risingDiv, fallingDiv, lastHeight: newHeight })
           })
       })
+      if (redrawNeeded)
+        window.setTimeout (this.drawMeters.bind(this), this.meterAnimFrameDelay)
     },
 
     shrinkToFit: function (div, maxShrinkFactor) {
