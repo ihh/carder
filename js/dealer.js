@@ -1,3 +1,4 @@
+// Provide Dealer with a list of cards
 const Dealer = (() => {
   const Dealer = function (config) {
     let dealer = this

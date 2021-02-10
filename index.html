@@ -13,7 +13,8 @@
     <script>
       let c, coins = 0.5, castle = 0.5
       $(document).ready (() => {
-	c = new Carder ({ parent: "carder" })
+	c = new Carder ({ parent: "carder",
+			  defaultCallback: dealFirstCard })
 	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
 	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
 	function deal (message, type) {
@@ -33,7 +34,8 @@
 			}
                       })
 	}
-//	deal ('<i>Demo card</i>', 'title')
+	function dealFirstCard() { deal ('<i>Demo card</i>', 'title') }
+//	dealFirstCard()
 	let msg = ''; for (let n = 1; n <= 100; ++n) msg += ' long text ' + n; deal(msg,'title')
       })
     </script>

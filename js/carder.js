@@ -5,7 +5,8 @@ const Carder = (() => {
     $.extend (this,
               { iconPromise: {},
                 svg: {},
-                meters: [] })
+                meters: [],
+                config })
     this.container = $('<div class="carder">')
       .append (this.statbar = $('<div class="statbar">'),
                $('<div class="cardbar">')
@@ -38,7 +39,7 @@ const Carder = (() => {
     // listen for resize
     $(document).on ('resize', carder.resizeListener.bind(carder))
     $(window).on ('resize', carder.resizeListener.bind(carder))
-    
+
     // return from constructor
     return this
   }
@@ -292,6 +293,7 @@ const Carder = (() => {
     },
 
     faderCallback: function (element, card, meters, cb) {
+      cb = cb || this.config.defaultCallback
       return () => {
         this.showMeterPreviews (1, meters)
         let faded = this.fadeCard (element, card)
