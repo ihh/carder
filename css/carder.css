@@ -45,13 +45,10 @@ input {
     justify-content: space-around;
 
     font-size: 2vh;
+    line-height: 2.5vh;
     text-align: center;
-}
 
-.carder-top-pad {
-}
-
-.carder-bottom-pad {
+    overflow: hidden;
 }
 
 .carder {
@@ -345,6 +342,11 @@ input {
     top: 5vh;
     margin-top: -1.5vh;
     color: white;
+
+    width: 8vh;
+    height: 3vh;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .carder .arrowcontainer .leftarrowstripe .arrowplustext .text {

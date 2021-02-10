@@ -57,6 +57,9 @@ const Carder = (() => {
     doAnimationsOnDesktop: true,
     maxMeterScale: 1.25,
     maxMeterShift: 10,
+    maxCardTextShrink: 4,
+    maxHintTextShrink: 4,
+    maxPreviewTextShrink: 4,
     
     // helpers
     isTouchDevice: function() {
@@ -148,10 +151,8 @@ const Carder = (() => {
       carder.drawMeters()
       
       carder.cardBodyDiv = $('<div class="cardbody">')
-      let cardDiv = $('<div class="card">')
-          .html ($('<div class="inner">')
-                 .html ($('<div class="content">')
-                        .html (config.html)))
+      let innerDiv = $('<div class="inner">').html ($('<div class="content">').html (config.html))
+      let cardDiv = $('<div class="card">').html (innerDiv)
       if (carder.doAnimations())
         cardDiv.addClass ('jiggle')  // non-touch devices don't get the drag-start event that are required to disable jiggle during drag (jiggle is incompatible with drag), so we just don't jiggle on non-touch devices for now
 
@@ -181,22 +182,23 @@ const Carder = (() => {
       carder.currentCardDiv = cardDiv
       
       cardDiv.hide()
-      let stackReadyPromise = config.stackReady || $.Deferred().resolve()
-      return stackReadyPromise
-	.then (function() {
-          carder.stackDiv.html (cardDiv)
-          cardDiv.show()
-          carder.stopDrag()
-	  // throw-in effect
-	  if (carder.doAnimations() && !config.noThrowIn) {
-            carder.startThrow (cardDiv)
-            card.throwIn (0, -carder.throwYOffset())
-          }
-          if (carder.nextDealPromise)
-            carder.nextDealPromise.resolve()
-          carder.nextDealPromise = $.Deferred()
-          return cardDiv
-        })
+      carder.stackDiv.html (cardDiv)
+      cardDiv.show()
+
+      carder.shrinkToFit (innerDiv, carder.maxCardTextShrink, () => {
+        cardDiv.css ('height', '100%')
+        cardDiv.css ('min-height', '')
+      })
+
+      carder.shrinkToFit (carder.leftThrowHint, carder.maxHintTextShrink)
+      carder.shrinkToFit (carder.rightThrowHint, carder.maxHintTextShrink)
+
+      carder.stopDrag()
+      // throw-in effect
+      if (carder.doAnimations() && !config.noThrowIn) {
+        carder.startThrow (cardDiv)
+        card.throwIn (0, -carder.throwYOffset())
+      }
     },
     
     startThrow: function (cardDiv) {
@@ -246,6 +248,7 @@ const Carder = (() => {
         carder.showMeterPreviews()
       }
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
+      carder.shrinkToFit (carder.previewDiv, carder.maxPreviewTextShrink)
     },
 
     showMeterPreviews: function (confidence, meterScale) {
@@ -344,7 +347,21 @@ const Carder = (() => {
             $.extend (meter, { div: meterDiv, risingDiv, fallingDiv })
           })
       })
-    }
+    },
+
+    shrinkToFit: function (div, maxShrinkFactor, failCallback) {
+      let factor = 1, multiplier = 1.1
+      div.css('font-size','').css('line-height','')
+      const initFontSize = parseFloat (div.css('font-size')), initLineHeight = parseFloat (div.css('line-height'))
+      const hasOverflow = () => div[0].scrollHeight > div[0].clientHeight || div[0].scrollWidth > div[0].clientWidth;
+      while (hasOverflow() && factor < maxShrinkFactor) {
+        factor = Math.min (maxShrinkFactor, factor * multiplier)
+        div.css ('font-size', (initFontSize / factor) + 'px')
+        div.css ('line-height', (initLineHeight / factor) + 'px')
+      }
+      if (failCallback && hasOverflow())
+        failCallback (div)
+    },
 
   })
 
