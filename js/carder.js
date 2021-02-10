@@ -55,8 +55,7 @@ const Carder = (() => {
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
     doAnimationsOnDesktop: true,
-    meterAnimFrameDelay: 50,
-    meterAnimFrames: 10,
+    meterAnimFrames: 40,
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
@@ -171,8 +170,8 @@ const Carder = (() => {
       
       // create the swing card object for the DOM element
       let card = carder.stack.createCard (cardDiv[0])
-      card.on ('throwoutleft', carder.faderCallback (cardDiv, card, left.cb))
-      card.on ('throwoutright', carder.faderCallback (cardDiv, card, right.cb))
+      card.on ('throwoutleft', carder.faderCallback (cardDiv, card, left.meters, left.cb))
+      card.on ('throwoutright', carder.faderCallback (cardDiv, card, right.meters, right.cb))
       card.on ('dragstart', function() {
         carder.startDrag()
       })
@@ -218,10 +217,11 @@ const Carder = (() => {
     },
 
     startDrag: function (cardDiv) {
-      let carder = this
-      cardDiv = cardDiv || carder.currentCardDiv
-      if (carder.throwArrowContainer)
-        carder.throwArrowContainer.removeClass('throwing').addClass('dragging').show()
+      cardDiv = cardDiv || this.currentCardDiv
+      this.cancelMeterAnimationFrame()
+      this.animateMeters(0)
+      if (this.throwArrowContainer)
+        this.throwArrowContainer.removeClass('throwing').addClass('dragging').show()
       if (cardDiv)
         cardDiv.removeClass('throwing').addClass('dragging')
     },
@@ -259,16 +259,17 @@ const Carder = (() => {
     },
 
     showMeterPreviews: function (confidence, meterScale) {
-      let carder = this
       confidence = confidence || 0
       meterScale = meterScale || {}
-      carder.meters.forEach ((meter) => {
-        const scale = meterScale[meter.name]
-        if (scale) {
-          meter.tintDiv.removeClass('rising falling')
-          meter.tintDiv.addClass(scale > 0 ? 'rising' : 'falling').css ('opacity', confidence)
-        } else
-          meter.tintDiv.css ('opacity', 0)
+      window.requestAnimationFrame (() => {
+        this.meters.forEach ((meter) => {
+          const scale = meterScale[meter.name]
+          if (scale) {
+            meter.tintDiv.removeClass('rising falling')
+            meter.tintDiv.addClass(scale > 0 ? 'rising' : 'falling').css ('opacity', confidence)
+          } else
+            meter.tintDiv.css ('opacity', 0)
+        })
       })
     },
     
@@ -288,10 +289,10 @@ const Carder = (() => {
       return fadedPromise
     },
 
-    faderCallback: function (element, card, cb) {
-      let carder = this
-      return function() {
-        let faded = carder.fadeCard (element, card)
+    faderCallback: function (element, card, meters, cb) {
+      return () => {
+        this.showMeterPreviews (1, meters)
+        let faded = this.fadeCard (element, card)
         if (cb)
           faded.then (cb)
       }
@@ -372,24 +373,32 @@ const Carder = (() => {
       })
     },
 
+    cancelMeterAnimationFrame: function() {
+      if (this.meterAnimFrame)
+        window.cancelAnimationFrame (this.meterAnimFrame)
+      delete this.meterAnimFrame
+    },
+    
     nextMeterAnimationFrame: function (framesLeft) {
-      window.setTimeout (this.animateMeters.bind(this,framesLeft), this.meterAnimFrameDelay)
+      this.cancelMeterAnimationFrame()
+      this.meterAnimFrame = window.requestAnimationFrame (() => {
+        delete this.meterAnimFrame
+        this.animateMeters(framesLeft)
+      })
     },
 
     animateMeters: function (framesLeft) {
-      window.requestAnimationFrame (() => {
-        this.meters.forEach ((meter) => {
-          let { levelDiv, tintDiv, initHeight, targetHeight } = meter
-          if (initHeight !== targetHeight) {
-            let r = framesLeft / this.meterAnimFrames, newHeight = initHeight*r + targetHeight*(1-r), tint = r
-            let clipRect = this.meterClipRect (newHeight)
-            tintDiv.css ({ opacity: tint, clip: clipRect })
-            levelDiv.css ('clip', clipRect)
-          }
-        })
-        if (framesLeft > 0)
-          this.nextMeterAnimationFrame (framesLeft - 1)
+      this.meters.forEach ((meter) => {
+        let { levelDiv, tintDiv, initHeight, targetHeight } = meter
+        if (initHeight !== targetHeight) {
+          let r = framesLeft / this.meterAnimFrames, newHeight = initHeight*r + targetHeight*(1-r), tint = r
+          let clipRect = this.meterClipRect (newHeight)
+          tintDiv.css ({ opacity: tint, clip: clipRect })
+          levelDiv.css ('clip', clipRect)
+        }
       })
+      if (framesLeft > 0)
+        this.nextMeterAnimationFrame (framesLeft - 1)
     },
 
     shrinkToFit: function (div, maxShrinkFactor) {

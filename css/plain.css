@@ -17,14 +17,9 @@ body,
     background-color: black;
 }
 
-.plain .carder .statbar .statlabel {
-    background-color: rgba(0,0,0,.5);
-    color: white;
-}
-
 /* Meters */
 .plain .carder .meter .icon.empty svg {
-    fill: gray;
+    fill: lightgray;
     opacity: .2;
 }
 
