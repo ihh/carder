@@ -176,9 +176,39 @@ const Dealer = (() => {
           w = w (gameState, dealer)
         return typeof(w) === 'number' ? w : 0
       })
-      this.carder.dealCard (this.cards[this.sampleByWeight (cardWeight)])
+      const template = this.cards[this.sampleByWeight (cardWeight)]
+
+      let card = {
+        html: this.evalString (template.html),
+        className: template.className,
+        left: this.evalSwiper (template.left),
+        right: this.evalSwiper (template.right)
+      }
+
+      this.carder.dealCard (card)
     },
-      
+
+    eval: function (x) {
+      return typeof(x) === 'function' ? x(this.gameState,this) : x
+    },
+    
+    evalString: function (x) {
+      return typeof(x) === 'undefined' ? undefined : this.eval(x).toString()
+    },
+
+    evalNumber: function (x) {
+      return typeof(x) === 'undefined' ? 0 : parseFloat (this.eval(x))
+    },
+
+    evalSwiper: function (template) {
+      if (!template)
+        return undefined
+      return { hint: this.evalString (template.hint),
+               preview: this.evalString (template.preview),
+               meters: template.meters,
+               cb: template.cb }
+    },
+    
     sampleByWeight: function (weights) {
       let totalWeight = weights.reduce (function (total, w) { return total + w }, 0)
       let w = totalWeight * Math.random()

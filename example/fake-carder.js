@@ -25,7 +25,7 @@ const FakeCarder = function (config) {
   process.stdin.setRawMode (true)
 
   process.stdin.on ('keypress', (str, key) => {
-    if (key.ctrl && (key.name === 'c' || key.name === 'd'))
+    if (key.name === 'escape' || (key.ctrl && (key.name === 'c' || key.name === 'd' || key.name === 'z')))
       process.exit()
     else if (key.name === 'left' || key.name === 'right') {
       console.log ('<' + key.name + '>')
