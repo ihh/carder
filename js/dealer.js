@@ -115,17 +115,15 @@ const Dealer = (() => {
     },
 
     flattenCardSet: function (cardSet, stage) {
-      if (isArray(cardSet)) {
-        cardSet.forEach ((card) => this.flattenCard (card, stage))
-        return cardSet
-      }
+      if (isArray(cardSet))
+        return cardSet.map ((card) => this.flattenCard (card, stage))
       if (typeof(cardSet) === 'object' && cardSet.cards && cardSet.when)
         return this.flattenCardSet (cardSet.cards, cardSet.when)
       return [this.flattenCard (cardSet, stage)]
     },
 
     flattenCard: function (card, stage) {
-      if (typeof(card) === 'string' || typeof(card) === 'function')
+      if (typeof(card) !== 'object')
         card = { html: this.evalString (card) }
       
       let when = card.when || stage

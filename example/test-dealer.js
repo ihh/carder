@@ -11,7 +11,7 @@ const config = {
            { name: 'castle' }],
   cards: [{ html: 'test card',
             when: 'start',
-            left: { scaledReward: { coins: .1 }, sequence: ["one","two","three"] },
+            left: { scaledReward: { coins: .1 }, sequence: ["one",["two",2],"three"] },
 //            left: { stage: 'man', scaledReward: { coins: .1 } },
             right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }]
 }
