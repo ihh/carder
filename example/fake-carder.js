@@ -45,7 +45,7 @@ extend (FakeCarder.prototype, {
     const left = config.left || {}
     const right = config.right || {}
     console.log()
-    //    console.log(config)
+//    console.log (config)
     console.log (config.html)
     console.log ("Left: " + (left.preview || "<no preview>"))
     console.log ("Right: " + (right.preview || "<no preview>"))

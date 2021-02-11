@@ -165,9 +165,10 @@ const Dealer = (() => {
     
     nextCard: function() {
       let dealer = this
-      let current = this.currentStage(), state = this.gameState
+      let stage = this.currentStage(), gameState = this.gameState
+      console.warn({gameState,stage})
       let cardWeight = this.cards.map ((card) => {
-        if (card.when && card.when.length && card.when.filter ((when) => when === state).length === 0)
+        if (card.when && card.when.length && card.when.filter ((when) => when === stage).length === 0)
           return 0
         let w = card.weight
         if (typeof(w) === 'undefined')
