@@ -75,6 +75,9 @@ const Dealer = (() => {
       this.makeCallbacks (card.right)
     })
 
+    //    console.log(JSON.stringify(this.cards,null,2))
+    console.log(this.cards)
+    
     // create meters
     meters.forEach ((meter) => {
       if (!meter.icon)
@@ -108,7 +111,7 @@ const Dealer = (() => {
     
     // methods
     newAnonStage: function() {
-      return '!' + (this.anonStageCount++)
+      return '!' + (++this.anonStageCount)
     },
 
     flattenCardSet: function (cardSet, stage) {
@@ -116,7 +119,9 @@ const Dealer = (() => {
         cardSet.forEach ((card) => this.flattenCard (card, stage))
         return cardSet
       }
-      return this.flattenCardSet (cardSet.cards, cardSet.when)
+      if (typeof(cardSet) === 'object' && cardSet.cards && cardSet.when)
+        return this.flattenCardSet (cardSet.cards, cardSet.when)
+      return [this.flattenCard (cardSet, stage)]
     },
 
     flattenCard: function (card, stage) {
@@ -132,12 +137,15 @@ const Dealer = (() => {
         this.flattenSwiper (card.left)
       if (card.right && card.right !== card.left)
         this.flattenSwiper (card.right)
+
+      return card;
     },
 
     flattenSwiper: function (swiper) {
       if (swiper.sequence) {
-        swiper.push = this.newAnonStage()
-        this.flattenSequence (swiper.sequence, swiper.push)
+        let push = this.newAnonStage()
+        swiper.push = (swiper.push || []).concat ([push])
+        this.flattenSequence (swiper.sequence, push)
       } else if (swiper.card) {
         swiper.stage = this.newAnonStage()
         this.flattenCard (swiper.card, swiper.stage)
@@ -157,14 +165,19 @@ const Dealer = (() => {
       })
       // hook up each step in the sequence to the next
       cardSets.forEach ((cardSet, n) => {
-        cardSet.forEach ((card) => card.pop = true)
+        cardSet.forEach ((card) => {
+          card.left = card.left || {}
+          card.right = card.right || {}
+          card.left.pop = (card.left.pop || 0) + 1
+          card.right.pop = (card.right.pop || 0) + 1
+        })
         if (n < sequence.length - 1) {
           const next = stages[n+1]
           cardSet.forEach ((card) => {
-            if (card.left && !card.left.stage)
-              card.left.push = card.left.push || next
-            if (card.right && !card.right.stage)
-              card.right.push = card.right.push || next
+            if (!card.left.stage)
+              card.left.push = (card.left.push || []).concat ([next])
+            if (!card.right.stage)
+              card.right.push = (card.right.push || []).concat ([next])
           })
         }
       })
@@ -175,11 +188,13 @@ const Dealer = (() => {
       let userCallback = swiper.cb || function(){}
       swiper.cb = () => {
         userCallback (dealer.gameState, dealer)
-        // TODO: smart update of meters (with automatic hints)
-        if (swiper.pop)
-          dealer.gameState.stage.pop()
+        if (swiper.pop) {
+          let pops = typeof(swiper.pop) === 'number' ? swiper.pop : 1
+          for (let n = 0; n < pops; ++n)
+            dealer.gameState.stage.pop()
+        }
         if (swiper.push)
-          dealer.gameState.stage.push (swiper.push)
+          dealer.gameState.stage = dealer.gameState.stage.concat (swiper.push)
         if (swiper.stage)
           dealer.gameState.stage = [swiper.stage]
         dealer.nextCard()
@@ -244,9 +259,10 @@ const Dealer = (() => {
       }
       if (template.cb || meterDelta)
         swiper.cb = () => {
-          Object.keys(meterDelta).forEach ((name) => {
-            this.gameState[name] += meterDelta[name]
-          })
+          if (meterDelta)
+            Object.keys(meterDelta).forEach ((name) => {
+              this.gameState[name] += meterDelta[name]
+            })
           if (template.cb)
             template.cb()
         }

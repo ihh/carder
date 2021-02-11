@@ -12,14 +12,6 @@ function extend(dest, src, merge) {
   return dest;
 }
 
-function deleteAndCall (obj, id) {
-  const cb = obj[id]
-  if (cb) {
-    delete obj[id]
-    cb()
-  }
-}
-
 const FakeCarder = function (config) {
   this.meters = []
 
@@ -31,12 +23,11 @@ const FakeCarder = function (config) {
       process.exit()
     else if (key.name === 'left' || key.name === 'right') {
       console.log ('<' + key.name + '>')
-      const id = key.name === 'left' ? 'leftCallback' : 'rightCallback'
-      const cb = this[id]
-      if (cb) {
-        delete this[id]
+      const cb = key.name === 'left' ? this.leftCallback : this.rightCallback
+      delete this.leftCallback
+      delete this.rightCallback
+      if (cb)
         cb()
-      }
     } else if (key.str)
       process.stdout.write (key.str)
   })
@@ -61,7 +52,7 @@ extend (FakeCarder.prototype, {
     const left = config.left || {}
     const right = config.right || {}
 //    console.log()
-//    console.log (config)
+    console.log (config)
     if (this.meters.length)
       console.log ("Meters: " + this.meters.map ((meter) => meter.name + '(' + meter.level() + ')').join(' ' ))
     console.log ("Card: " + config.html)
