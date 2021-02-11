@@ -9,7 +9,10 @@
 //        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
 //        html: string, or callback to generate content from current gameState
 //   className: string
-// left, right: optional objects that can contain { hint, preview, meters, stage, push, pop, cb, card, sequence, cardSet }
+// left, right: optional swiper objects that can contain { hint, preview, meters, stage, push, pop, cb, card, sequence, cardSet }
+
+// Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
+// There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
 
 // A 'sequence' is an array of cardSets lacking a 'when' property (it's auto-assigned). If any of the left/right objects change gameState.stage, then the sequence will be derailed.
 
@@ -96,6 +99,9 @@ const Dealer = (() => {
     },
 
     flattenCard: function (card, stage) {
+      if (typeof(card) === 'string' || typeof(card) === 'function')
+        card = { html: this.evalString (card) }
+      
       let when = card.when || stage
       card.when = when ? when.split(/\s+/) : undefined
       if (card.next)
