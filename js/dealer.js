@@ -16,16 +16,45 @@
 // Meter properties are as in Carder, but the 'level' callback is passed a gameState
 
 const Dealer = (() => {
+
+  // helpers
+  function isArray(obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]'
+  }
+
+  function extend(dest, src, merge) {
+    var keys = Object.keys(src);
+    var i = 0;
+    while (i < keys.length) {
+      if (!merge || (merge && dest[keys[i]] === undefined)) {
+	dest[keys[i]] = src[keys[i]];
+      }
+      i++;
+    }
+    return dest;
+  }
+
+  const isBrowser = new Function ("try {return this===window;}catch(e){ return false;}")
+  const isNode = new Function("try {return this===global;}catch(e){return false;}")
+  
+  // Dealer
   const Dealer = function (config) {
     let dealer = this
-    let carder = config.carder || new Carder ({ parent: config.parent }),
+    if (!config)
+      throw new Error ("Dealer needs a configuration object")
+    let carder = config.carder,
         cards = config.cards,
         meters = config.meters || []
-    $.extend (this, {
+    if (!carder)
+      throw new Error ("Dealer needs a Carder")
+    if (!cards)
+      throw new Error ("Dealer needs cards")
+
+    extend (this, {
       carder,
       cards: [],
       anonStageCount: 0,
-      gameState: $.extend ({
+      gameState: extend ({
         stage: [this.startStage]
       }, config.gameState || {})
     })
@@ -33,10 +62,10 @@ const Dealer = (() => {
     // flatten nested sequences & cardSets, assign stages, wrap callbacks
     this.flattenCardSet (cards)
     this.cards.forEach ((card) => {
-      if (card.left)
-        this.wrapCallbacks (card.left)
-      if (card.right)
-        this.wrapCallbacks (card.right)
+      card.left = card.left || {}
+      card.right = card.right || {}
+      this.makeCallbacks (card.left)
+      this.makeCallbacks (card.right)
     })
 
     // create meters
@@ -49,7 +78,7 @@ const Dealer = (() => {
     return this
   }
 
-  $.extend (Dealer.prototype, {
+  extend (Dealer.prototype, {
     // config
     startStage: 'start',
     
@@ -59,7 +88,7 @@ const Dealer = (() => {
     },
     
     flattenCardSet: function (cardSet, stage) {
-      if ($.isArray(cardSet)) {
+      if (isArray(cardSet)) {
         cardSet.forEach ((card) => this.flattenCard (card, stage))
         return cardSet
       }
@@ -67,10 +96,11 @@ const Dealer = (() => {
     },
 
     flattenCard: function (card, stage) {
-      card.when = (card.when || stage).split(/\s+/)
+      let when = card.when || stage
+      card.when = when ? when.split(/\s+/) : undefined
       if (card.next)
         card.left = card.right = card.next
-      this.flatten.append (card)
+      this.cards.push (card)
       if (card.left)
         this.flattenSwiper (card.left)
       if (card.right && card.right !== card.left)
@@ -113,12 +143,12 @@ const Dealer = (() => {
       })
     },
 
-    wrapCallbacks: function (swiper) {
+    makeCallbacks: function (swiper) {
       let dealer = this
       let userCallback = swiper.cb || function(){}
       swiper.cb = () => {
         userCallback (dealer.gameState, dealer)
-        // TODO: smart update of meters (automatic hints)
+        // TODO: smart update of meters (with automatic hints)
         if (swiper.pop)
           dealer.gameState.stage.pop()
         if (swiper.push)
@@ -130,7 +160,7 @@ const Dealer = (() => {
     },
     
     currentStage: function() {
-      return this.gameState.stage[this.gameState.stage.length - 1]
+      return this.gameState.stage.length > 0 ? this.gameState.stage[this.gameState.stage.length - 1] : undefined
     },
     
     nextCard: function() {
@@ -146,7 +176,7 @@ const Dealer = (() => {
           w = w (gameState, dealer)
         return typeof(w) === 'number' ? w : 0
       })
-      carder.dealCard (this.cards[this.sampleByWeight (cardWeight)])
+      this.carder.dealCard (this.cards[this.sampleByWeight (cardWeight)])
     },
       
     sampleByWeight: function (weights) {
@@ -160,5 +190,8 @@ const Dealer = (() => {
 
   })
 
+  if (isNode())
+    module.exports = Dealer
+  
   return Dealer
 })()
