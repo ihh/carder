@@ -7,10 +7,12 @@ let c = new FakeCarder()
 
 const config = {
   carder: c,
+  meters: [{ name: 'coins' },
+           { name: 'castle' }],
   cards: [{ html: 'test card',
             stage: 'start',
-            left: { stage: 'man' },
-            right: { stage: 'muppet' } }]
+            left: { stage: 'man', reward: { coins: .1 } },
+            right: { stage: 'muppet', reward: { coins: -.1, castle: .2 } } }]
 }
 
 let d = new Dealer (config)

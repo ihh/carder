@@ -58,7 +58,7 @@ const Dealer = (() => {
     extend (this, {
       carder,
       cards: [],
-      meters: {},
+      meter: {},
       anonStageCount: 0,
       gameState: extend ({
         stage: [this.startStage]
@@ -249,13 +249,12 @@ const Dealer = (() => {
         })
       }
       if (template.cb || template.meters)
-        swiper.cb = (gameState, dealer) => {
-          if (template.meters)
-            Object.keys(meterDelta).forEach ((name) => {
-              gameState[name] += meterDelta[name]
-            })
+        swiper.cb = () => {
+          Object.keys(meterDelta).forEach ((name) => {
+            this.gameState[name] += meterDelta[name]
+          })
           if (template.cb)
-            template.cb (gameState, dealer)
+            template.cb()
         }
       return swiper
     },

@@ -21,6 +21,8 @@ function deleteAndCall (obj, id) {
 }
 
 const FakeCarder = function (config) {
+  this.meters = []
+
   readline.emitKeypressEvents (process.stdin)
   process.stdin.setRawMode (true)
 
@@ -40,15 +42,31 @@ const FakeCarder = function (config) {
   })
 }
 
+function previewSwiper (title, swiper) {
+  console.log (title + ':')
+  if (swiper.hint)
+    console.log (" Hint: " + swiper.hint)
+  if (swiper.preview)
+    console.log (" Preview: " + swiper.preview)
+  if (swiper.meters)
+    console.log (" Meters: " + Object.keys(swiper.meters).map ((name) => name + (swiper.meters[name] > 0 ? '+' : '-')).join(' '))
+}
+
 extend (FakeCarder.prototype, {
+  addMeter: function (meter) {
+    this.meters.push (meter)
+  },
+
   dealCard: function (config) {
     const left = config.left || {}
     const right = config.right || {}
-    console.log()
+//    console.log()
 //    console.log (config)
-    console.log (config.html)
-    console.log ("Left: " + (left.preview || "<no preview>"))
-    console.log ("Right: " + (right.preview || "<no preview>"))
+    if (this.meters.length)
+      console.log ("Meters: " + this.meters.map ((meter) => meter.name + '(' + meter.level() + ')').join(' ' ))
+    console.log ("Card: " + config.html)
+    previewSwiper ("Left", left)
+    previewSwiper ("Right", right)
     this.leftCallback = left.cb
     this.rightCallback = right.cb
   }
