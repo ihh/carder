@@ -9,7 +9,7 @@
 //        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
 //        html: string, or callback to generate content from current gameState
 //   className: string
-// left, right: optional swiper objects that can contain { hint, preview, meters, reward, stage, push, pop, cb, card, sequence, cardSet }
+// left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
 
 // Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 // There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
@@ -19,6 +19,7 @@
 // Meter properties are as in Carder, but the 'level' callback is passed a gameState
 // Alternatively, if meter has no 'level' but has {min,max,init}, a property with the same name as the meter will be added to gameState, and its level autocomputed
 // If a swiper has a 'reward' property, then this is used as a name=>delta map for the meter, and the preview auto-generated.
+// 'scaledReward' is the same but auto-scales the reward so it is smaller near the top or bottom of the range.
 
 const Dealer = (() => {
 
@@ -235,20 +236,13 @@ const Dealer = (() => {
       let swiper = { hint: this.evalString (template.hint),
                      preview: this.evalString (template.preview) }
       let meterDelta
-      if (template.reward) {
+      if (template.reward || template.scaledReward) {
         swiper.meters = {}
         meterDelta = {}
-        Object.keys(template.reward).forEach ((name) => {
-          const delta = this.evalNumber (template.reward[name])
-          const meter = this.meter[name], oldLevel = this.gameState[name]
-          const boundedDelta = delta * (meter.max - oldLevel) / (meter.max - meter.min)  // c.f. https://choicescriptdev.fandom.com/wiki/Arithmetic_operators
-          if (boundedDelta) {
-            meterDelta[name] = boundedDelta
-            swiper.meters[name] = Math.sign(boundedDelta)
-          }
-        })
+        this.setDeltas (meterDelta, swiper.meters, template.reward, false)
+        this.setDeltas (meterDelta, swiper.meters, template.scaledReward, true)
       }
-      if (template.cb || template.meters)
+      if (template.cb || meterDelta)
         swiper.cb = () => {
           Object.keys(meterDelta).forEach ((name) => {
             this.gameState[name] += meterDelta[name]
@@ -257,6 +251,24 @@ const Dealer = (() => {
             template.cb()
         }
       return swiper
+    },
+
+    setDeltas: function (meterDelta, swiperMeters, reward, scaled) {
+      if (reward)
+        Object.keys(reward).forEach ((name) => {
+          const delta = this.evalNumber (reward[name])
+          const meter = this.meter[name], oldLevel = this.gameState[name]
+          const scaledDelta = (scaled
+                               ? ((delta > 0
+                                   ? (meter.max - oldLevel)
+                                   : (oldLevel - meter.min))
+                                  * delta / (meter.max - meter.min))
+                               : delta)  // c.f. https://choicescriptdev.fandom.com/wiki/Arithmetic_operators
+          if (scaledDelta) {
+            meterDelta[name] = scaledDelta
+            swiperMeters[name] = Math.sign(scaledDelta)
+        }
+        })
     },
     
     sampleByWeight: function (weights) {

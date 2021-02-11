@@ -11,8 +11,8 @@ const config = {
            { name: 'castle' }],
   cards: [{ html: 'test card',
             stage: 'start',
-            left: { stage: 'man', reward: { coins: .1 } },
-            right: { stage: 'muppet', reward: { coins: -.1, castle: .2 } } }]
+            left: { stage: 'man', scaledReward: { coins: .1 } },
+            right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }]
 }
 
 let d = new Dealer (config)
