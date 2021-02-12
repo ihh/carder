@@ -125,8 +125,16 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fddeb5', end
     box-shadow: 2px 2px 1px 1px rgba(0,0,0,0.3);
 }
 
-.carder .stack .card.dragging {
+.plain .carder .stack .card.dragging {
     -webkit-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
     -moz-box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
     box-shadow: 8px 8px 4px 4px rgba(0,0,0,0.3);
+}
+
+.plain .carder .previewbar svg {
+    fill: #ccc;
+}
+
+.plain .carder .arrowcontainer .arrow svg {
+    fill: #222;
 }

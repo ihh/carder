@@ -14,13 +14,13 @@ const Carder = (() => {
                       .html (this.stackDiv = $('<div class="stack">'))),
                this.makeThrowArrowContainer(),
                this.previewBar = $('<div class="previewbar">')
-               .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this), this.throwArrowColor),
-                        this.confirmThrowLeftDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this), this.throwArrowColor).hide(),
-                        this.cancelThrowRightDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this), this.throwArrowColor).hide(),
+               .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this)),
+                        this.confirmThrowLeftDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
+                        this.cancelThrowRightDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide(),
                         this.previewDiv = $('<div class="preview">'),
-                        this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this), this.throwArrowColor),
-                        this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this), this.throwArrowColor).hide(),
-                        this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this), this.throwArrowColor).hide()))
+                        this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this)),
+                        this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
+                        this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide()))
     this.disableThrowButtons()
     this.pageContainer = $('#'+(config.parent || this.parent))
       .addClass("carder-page")
@@ -73,8 +73,6 @@ const Carder = (() => {
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
-    swipeArrowColor: '#222',   // should move this to CSS
-    throwArrowColor: '#ccc',   // should move this to CSS
     
     // helpers
     isTouchDevice: function() {
@@ -120,31 +118,28 @@ const Carder = (() => {
       carder.throwArrowContainer = $('<div class="arrowcontainer">')
         .append ($('<div class="arrowstripe leftarrowstripe">')
                  .append (carder.leftThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft', null, this.swipeArrowColor)),
+                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft')),
                                    carder.leftThrowHint = $('<div class="text">'))),
                  $('<div class="arrowstripe">')
                  .html (hand.html (carder.makeIconButton ('swipe'))),
                  $('<div class="arrowstripe rightarrowstripe">')
                  .append (carder.rightThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight', null, this.swipeArrowColor)),
+                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight')),
                                    carder.rightThrowHint = $('<div class="text">'))))
       return carder.throwArrowContainer
     },
 
-    makeIconButton: function (iconName, callback, color) {
+    makeIconButton: function (iconName, callback) {
       let config = (typeof(iconName) === 'object'
                     ? iconName
                     : { iconName: iconName,
-                        callback: callback,
-                        color: color })
+                        callback: callback })
       let iconFilename = config.iconFilename || (this.iconPrefix + this.iconFilename[config.iconName] + this.iconSuffix)
       let iconNameSpan = $('<span>').addClass('iconlabel').text (config.text || config.iconName || config.iconFilename)
       let button = $('<span>').addClass('button')
       this.getIconPromise (iconFilename)
         .done (function (svg) {
           let elem = $(svg)
-          if (config.color)
-            elem.css ('fill', config.color)
           button.prepend (elem)
         })
       if (config.callback)
@@ -193,8 +188,10 @@ const Carder = (() => {
         carder.startDrag()
       })
       card.on ('throwinend', function() {
-        carder.stopDrag()
-        carder.drawMeters()
+        if (!cardDiv.hasClass('dragging')) {  // a bit hacky using the DOM to pass state like this, oh well
+          carder.stopDrag()
+          carder.drawMeters()
+        }
       })
       carder.dragPreviewConfig = { preview: { left: left.preview || '',
                                        right: right.preview || '' },

@@ -157,14 +157,12 @@ input {
 
     height: 0;
     min-height: 100%;
-    /*
-      To prevent Safari vertical centering from breaking, comment out previous two lines and add this:
-      height: 100%;
-   */
-    
+
     text-align: center;
     overflow: hidden;
 
+    word-break: break-word;
+    
     font-size: 3vh;
     line-height: 3.75vh;
 
