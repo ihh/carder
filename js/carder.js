@@ -13,7 +13,15 @@ const Carder = (() => {
                .html ($('<div class="cardtable">')
                       .html (this.stackDiv = $('<div class="stack">'))),
                this.makeThrowArrowContainer(),
-               this.previewDiv = $('<div class="preview">'))
+               this.previewBar = $('<div class="previewbar">')
+               .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this), this.throwArrowColor),
+                        this.confirmThrowLeftDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this), this.throwArrowColor).hide(),
+                        this.cancelThrowRightDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this), this.throwArrowColor).hide(),
+                        this.previewDiv = $('<div class="preview">'),
+                        this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this), this.throwArrowColor),
+                        this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this), this.throwArrowColor).hide(),
+                        this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this), this.throwArrowColor).hide()))
+    this.disableThrowButtons()
     this.pageContainer = $('#'+(config.parent || this.parent))
       .addClass("carder-page")
       .addClass (this.defaultTheme)
@@ -52,7 +60,11 @@ const Carder = (() => {
     iconSuffix: '.svg',
     iconFilename: { swipe: 'one-finger-contact-swipe',
                     swipeleft: 'left-swipe-arrow',
-                    swiperight: 'right-swipe-arrow' },
+                    swiperight: 'right-swipe-arrow',
+                    throwleft: 'left-arrow',
+                    throwright: 'right-arrow',
+                    yes: 'check-mark',
+                    no: 'x' },
     defaultCardClass: 'basic',
     throwOutConfidenceThreshold: .25,
     cardFadeTime: 300,
@@ -61,6 +73,8 @@ const Carder = (() => {
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
+    swipeArrowColor: '#222',   // should move this to CSS
+    throwArrowColor: '#ccc',   // should move this to CSS
     
     // helpers
     isTouchDevice: function() {
@@ -106,13 +120,13 @@ const Carder = (() => {
       carder.throwArrowContainer = $('<div class="arrowcontainer">')
         .append ($('<div class="arrowstripe leftarrowstripe">')
                  .append (carder.leftThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft', null, '#222')),
+                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft', null, this.swipeArrowColor)),
                                    carder.leftThrowHint = $('<div class="text">'))),
                  $('<div class="arrowstripe">')
                  .html (hand.html (carder.makeIconButton ('swipe'))),
                  $('<div class="arrowstripe rightarrowstripe">')
                  .append (carder.rightThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight', null, '#222')),
+                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight', null, this.swipeArrowColor)),
                                    carder.rightThrowHint = $('<div class="text">'))))
       return carder.throwArrowContainer
     },
@@ -182,17 +196,18 @@ const Carder = (() => {
         carder.stopDrag()
         carder.drawMeters()
       })
-      card.on ('dragmove', carder.dragListener.bind (carder,
-                                                     { preview: { left: left.preview || '',
-                                                                  right: right.preview || '' },
-                                                       meters: { left: left.meters || {},
-                                                                 right: right.meters || {} } }))
+      carder.dragPreviewConfig = { preview: { left: left.preview || '',
+                                       right: right.preview || '' },
+                            meters: { left: left.meters || {},
+                                      right: right.meters || {} } }
+      card.on ('dragmove', carder.dragPreview.bind (carder))
       card.on ('dragend', function() {
         carder.throwArrowContainer.removeClass('dragging').addClass('throwing')
         cardDiv.removeClass('dragging').addClass('throwing')
       })
 
       carder.currentCardDiv = cardDiv
+      carder.currentCard = card
       
       cardDiv.hide()
       carder.stackDiv.html (cardDiv)
@@ -227,35 +242,50 @@ const Carder = (() => {
         this.throwArrowContainer.removeClass('throwing').addClass('dragging').show()
       if (cardDiv)
         cardDiv.removeClass('throwing').addClass('dragging')
+      this.resetPreviewBar()
+      this.disableThrowButtons()
     },
 
     stopDrag: function (cardDiv) {
-      let carder = this
-      cardDiv = cardDiv || carder.currentCardDiv
-      if (carder.throwArrowContainer)
-        carder.throwArrowContainer.removeClass('throwing').removeClass('dragging').removeClass('leftdrag').removeClass('rightdrag').show()
+      cardDiv = cardDiv || this.currentCardDiv
+      if (this.throwArrowContainer)
+        this.throwArrowContainer.removeClass('throwing').removeClass('dragging').removeClass('leftdrag').removeClass('rightdrag').show()
       if (cardDiv)
         cardDiv.removeClass('throwing').removeClass('dragging')
-      carder.previewDiv.empty()
+      this.previewDiv.empty()
+      this.resetPreviewBar()
     },
 
-    dragListener: function (dragConfig, swingEvent) {
+    enableThrowButtons: function() {
+      this.throwButtonsDisabled = false  // hacky but functional
+    },
+
+    disableThrowButtons: function() {
+      this.throwButtonsDisabled = true
+    },
+
+    dragPreview: function (swingEvent) {
       let carder = this
+      let dragPreviewConfig = this.dragPreviewConfig
       // swingEvent is a Hammer panmove event, decorated by swing
       carder.throwArrowContainer.removeClass('leftdrag').removeClass('rightdrag')
       if (swingEvent.throwDirection === swing.Direction.LEFT) {
         carder.throwArrowContainer.addClass('leftdrag')
         carder.leftThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-        carder.previewDiv.html (dragConfig.preview.left)
-        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragConfig.meters.left)
+        carder.previewDiv.html (dragPreviewConfig.preview.left)
+        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragPreviewConfig.meters.left)
+        carder.throwRightDiv.css ('opacity', 1 - swingEvent.throwOutConfidence)
       } else if (swingEvent.throwDirection === swing.Direction.RIGHT) {
         carder.throwArrowContainer.addClass('rightdrag')
         carder.rightThrowArrow.css ('opacity', swingEvent.throwOutConfidence)
-        carder.previewDiv.html (dragConfig.preview.right)
-        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragConfig.meters.right)
+        carder.previewDiv.html (dragPreviewConfig.preview.right)
+        carder.showMeterPreviews (swingEvent.throwOutConfidence, dragPreviewConfig.meters.right)
+        carder.throwLeftDiv.css ('opacity', 1 - swingEvent.throwOutConfidence)
       } else {
         carder.previewDiv.empty()
         carder.showMeterPreviews()
+        carder.throwLeftDiv.css ('opacity', 1)
+        carder.throwRightDiv.css ('opacity', 1)
       }
       carder.previewDiv.css ('opacity', swingEvent.throwOutConfidence)
       carder.shrinkToFit (carder.previewDiv, carder.maxPreviewTextShrink)
@@ -302,6 +332,65 @@ const Carder = (() => {
       }
     },
     
+    modalThrowLeft: function() {
+      if (!this.throwButtonsDisabled) {
+        this.dragPreview ({ throwDirection: swing.Direction.LEFT,
+                            throwOutConfidence: 1 })
+        this.throwLeftDiv.hide()
+        this.throwRightDiv.hide()
+        this.confirmThrowLeftDiv.show()
+        this.cancelThrowLeftDiv.show()
+        this.modalThrower = this.throwLeft
+      }
+    },
+
+    modalThrowRight: function() {
+      if (!this.throwButtonsDisabled) {
+        this.dragPreview ({ throwDirection: swing.Direction.RIGHT,
+                            throwOutConfidence: 1 })
+        this.throwLeftDiv.hide()
+        this.throwRightDiv.hide()
+        this.confirmThrowRightDiv.show()
+        this.cancelThrowRightDiv.show()
+        this.modalThrower = this.throwRight
+      }
+    },
+
+    confirmModalThrow: function() {
+      if (!this.throwButtonsDisabled) {
+        this.disableThrowButtons()
+        this.modalThrower()
+      }
+    },
+
+    cancelModalThrow: function() {
+      if (!this.throwButtonsDisabled) {
+        this.drawMeters()
+        this.resetPreviewBar()
+      }
+    },
+
+    resetPreviewBar: function() {
+      this.throwLeftDiv.css('opacity',1).show()
+      this.throwRightDiv.css('opacity',1).show()
+      this.confirmThrowLeftDiv.hide()
+      this.cancelThrowLeftDiv.hide()
+      this.confirmThrowRightDiv.hide()
+      this.cancelThrowRightDiv.hide()
+      this.previewDiv.empty()
+      this.enableThrowButtons()
+    },
+
+    throwLeft: function (card, cardDiv) {
+      this.startThrow (this.currentCardDiv)
+      this.currentCard.throwOut (-this.throwXOffset(), this.throwYOffset())
+    },
+
+    throwRight: function (card, cardDiv) {
+      this.startThrow (this.currentCardDiv)
+      this.currentCard.throwOut (this.throwXOffset(), this.throwYOffset())
+    },
+
     resizeListener: function() {
       this.drawMeters()
     },

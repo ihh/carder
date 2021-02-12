@@ -44,11 +44,25 @@ input {
     height: 100%;
 }
 
-.preview {
+.previewbar {
     height: 7vh;
     min-height: 80px;
-    
+
+    display: flex;
+    flex-direction: row;
+
+    padding: 0px 20px;
+}
+
+.previewbar .button {
+    min-height: 7vh;
+    min-width: 7vh;
+}
+
+.preview {
     z-index: 30;
+    flex-grow: 1;
+
     display: flex;
     flex-direction: column;
     justify-content: space-around;
