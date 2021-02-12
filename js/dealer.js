@@ -6,6 +6,7 @@
 
 // Card properties
 //      weight: number, or callback which is passed the current gameState
+//    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
 //        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
 //        html: string, or callback to generate content from current gameState
 //   className: string
@@ -243,6 +244,13 @@ const Dealer = (() => {
           w = w (gameState, dealer)
         return typeof(w) === 'number' ? w : 0
       })
+      let maxPriority = this.cards.reduce ((mp, card, n) => {
+        let priority = card.priority || 0
+        if (cardWeight[n] > 0 && (typeof(mp) === 'undefined' || priority > mp))
+          mp = priority
+        return mp
+      }, undefined)
+      cardWeight = cardWeight.map ((w, n) => (this.cards[n].priority || 0) === maxPriority ? w : 0)
       const template = this.cards[this.sampleByWeight (cardWeight)]
       if (typeof(template) !== 'undefined') {
         if (template.limit)
