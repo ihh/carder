@@ -55,7 +55,7 @@ extend (FakeCarder.prototype, {
     console.log (config)
     if (this.meters.length)
       console.log ("Meters: " + this.meters.map ((meter) => meter.name + '(' + meter.level() + ')').join(' ' ))
-    console.log ("Card: " + config.html)
+    console.log ("Card " + config.cardIndex + ": " + config.html)
     previewSwiper ("Left", left)
     previewSwiper ("Right", right)
     this.leftCallback = left.cb

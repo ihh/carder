@@ -1,8 +1,8 @@
 // Provide Dealer with cards, meters
 
 // A cardSet is one of the following:
-// - an array of cards
-// - an object with {when,cards} properties ('when' is auto-assigned to all cards in list)
+// - a staged cardSet; that is, an object with {when,cards} properties ('when' is auto-assigned to all cards in list)
+// - an array of cards or staged cardSets
 
 // Card properties
 //      weight: number, or callback which is passed the current gameState
@@ -12,6 +12,7 @@
 //   className: string
 // left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
 // limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
+//        cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
 
 // Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 // There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
@@ -64,13 +65,18 @@ const Dealer = (() => {
       meter: {},
       anonStageCount: 0,
       gameState: extend ({
-        stage: [this.startStage],
-        turns: {
-          byCard: {},
-          byStage: [0],
-          totalByStage: {},
-          total: 0
-        },
+        _: {
+          stage: [this.startStage],
+          turns: {
+            byCard: {},
+            byStage: [0],
+            totalByStage: {},
+            total: 0
+          },
+          history: {
+            byStage: [[]],
+          },
+        }
       }, config.gameState || {})
     })
 
@@ -83,7 +89,7 @@ const Dealer = (() => {
       this.makeCallbacks (card.left)
       this.makeCallbacks (card.right)
       if (typeof(card.limit) !== 'undefined')
-        this.gameState.turns.byCard[n] = 0
+        this.gameState._.turns.byCard[n] = 0
     })
 
     //    console.log(JSON.stringify(this.cards,null,2))
@@ -127,8 +133,8 @@ const Dealer = (() => {
 
     flattenCardSet: function (cardSet, stage) {
       if (isArray(cardSet))
-        return cardSet.map ((card) => this.flattenCard (card, stage))
-      if (typeof(cardSet) === 'object' && cardSet.cards && cardSet.when)
+        return cardSet.reduce ((list, card) => list.concat (this.flattenCardSet (card, stage)), [])
+      if (typeof(cardSet) === 'object' && cardSet.cards)
         return this.flattenCardSet (cardSet.cards, cardSet.when)
       return [this.flattenCard (cardSet, stage)]
     },
@@ -138,7 +144,7 @@ const Dealer = (() => {
         card = { html: this.evalString (card) }
       
       let when = card.when || stage
-      card.when = when ? when.split(/\s+/) : undefined
+      card.when = when ? (isArray(when) ? when : when.split(/\s+/)) : undefined
       if (card.next)
         card.left = card.right = card.next
       this.cards.push (card)
@@ -193,44 +199,51 @@ const Dealer = (() => {
     },
 
     makeCallbacks: function (swiper) {
-      let dealer = this
+      let dealer = this, gs = dealer.gameState._
       let userCallback = swiper.cb || function(){}
       swiper.cb = () => {
         userCallback (dealer.gameState, dealer)
         if (swiper.pop) {
           let pops = typeof(swiper.pop) === 'number' ? swiper.pop : 1
           for (let n = 0; n < pops; ++n) {
-            dealer.gameState.stage.pop()
-            dealer.gameState.turns.byStage.pop()
+            gs.stage.pop()
+            gs.turns.byStage.pop()
+            gs.history.byStage.pop()
           }
         }
         if (swiper.push) {
-          dealer.gameState.stage = dealer.gameState.stage.concat (swiper.push)
-          dealer.gameState.turns.byStage.push (0)
+          gs.stage = gs.stage.concat (swiper.push)
+          gs.turns.byStage.push (0)
+          gs.history.byStage.push ([])
         }
         if (swiper.stage) {
-          dealer.gameState.stage = [swiper.stage]
-          dealer.gameState.turns.byStage = [0]
+          gs.stage = [swiper.stage]
+          gs.turns.byStage = [0]
+          gs.history.byStage = []
         }
         dealer.nextCard()
       }
     },
     
     currentStage: function() {
-      return this.gameState.stage.length > 0 ? this.gameState.stage[this.gameState.stage.length - 1] : undefined
+      let gs = this.gameState._
+      return gs.stage.length > 0 ? gs.stage[gs.stage.length - 1] : undefined
     },
     
     nextCard: function() {
       let dealer = this
-      let stage = this.currentStage(), gameState = this.gameState
+      let stage = this.currentStage(), gameState = this.gameState, gs = gameState._
       console.log()
       console.log(JSON.stringify({gameState}))
+
+      // Use the weight, turn limit, cool-off, and/or priority rules to arrive at a weight distribution over cards
+      // Weights & turn limits
       let cardWeight = this.cards.map ((card) => {
         if (card.when && card.when.length && card.when.filter ((when) => when === stage).length === 0)
           return 0
-        let turnsByCard = gameState.turns.byCard[card.cardIndex]
-        let turnsByStage = gameState.turns.byStage[gameState.turns.byStage.length-1]
-        let turnsTotalByStage = gameState.turns.totalByStage[stage]
+        let turnsByCard = gs.turns.byCard[card.cardIndex]
+        let turnsByStage = gs.turns.byStage[gs.turns.byStage.length-1]
+        let turnsTotalByStage = gs.turns.totalByStage[stage]
         if ((card.limit && turnsByCard >= card.limit)
             || (card.minTurnsAtStage && turnsByStage < card.minTurnsAtStage)
             || (card.maxTurnsAtStage && turnsByStage > card.maxTurnsAtStage)
@@ -242,8 +255,25 @@ const Dealer = (() => {
           return 1
         if (typeof(w) === 'function')
           w = w (gameState, dealer)
-        return typeof(w) === 'number' ? w : 0
+        return typeof(w) === 'number' ? Math.max(w,0) : 0
       })
+      // Cool-off
+      let history = gs.history.byStage[gs.history.byStage.length - 1]
+      let turnsSinceCool = this.cards.map ((card, n) => {
+        let tsc
+        if (cardWeight[n] > 0) {
+          tsc = history.length
+          if (card.cool) {
+            let last = history.lastIndexOf(card.cardIndex)
+            if (last >= 0)
+              tsc = history.length - last - (card.cool || 0)
+          }
+          return tsc
+        }
+      })
+      let maxTurnsSinceCool = Math.max.apply (Math, turnsSinceCool.filter ((x) => typeof(x) !== 'undefined'))
+      cardWeight = cardWeight.map ((w, n) => (turnsSinceCool[n] > 0 || turnsSinceCool[n] === maxTurnsSinceCool) ? w : 0)
+      // Priority
       let maxPriority = this.cards.reduce ((mp, card, n) => {
         let priority = card.priority || 0
         if (cardWeight[n] > 0 && (typeof(mp) === 'undefined' || priority > mp))
@@ -251,19 +281,22 @@ const Dealer = (() => {
         return mp
       }, undefined)
       cardWeight = cardWeight.map ((w, n) => (this.cards[n].priority || 0) === maxPriority ? w : 0)
+                                                 
       const template = this.cards[this.sampleByWeight (cardWeight)]
       if (typeof(template) !== 'undefined') {
         if (template.limit)
-          ++gameState.turns.byCard[template.cardIndex]
-        ++gameState.turns.byStage[gameState.turns.byStage.length - 1]
-        gameState.turns.totalByStage[stage] = (gameState.turns.totalByStage[stage] || 0) + 1
-        gameState.turns.total++
+          ++gs.turns.byCard[template.cardIndex]
+        ++gs.turns.byStage[gs.turns.byStage.length - 1]
+        gs.turns.totalByStage[stage] = (gs.turns.totalByStage[stage] || 0) + 1
+        gs.turns.total++
+        gs.history.byStage[gs.history.byStage.length - 1].push (template.cardIndex)
         
         let card = {
           html: this.evalString (template.html),
           className: template.className,
           left: this.evalSwiper (template.left),
-          right: this.evalSwiper (template.right)
+          right: this.evalSwiper (template.right),
+          cardIndex: template.cardIndex   // not used by Carder, but used by FakeCarder for debugging
         }
 
         this.carder.dealCard (card)
