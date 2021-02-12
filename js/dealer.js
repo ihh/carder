@@ -10,6 +10,7 @@
 //        html: string, or callback to generate content from current gameState
 //   className: string
 // left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
+// limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
 
 // Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 // There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
@@ -62,17 +63,26 @@ const Dealer = (() => {
       meter: {},
       anonStageCount: 0,
       gameState: extend ({
-        stage: [this.startStage]
+        stage: [this.startStage],
+        turns: {
+          byCard: {},
+          byStage: [0],
+          totalByStage: {},
+          total: 0
+        },
       }, config.gameState || {})
     })
 
-    // flatten nested sequences & cardSets, assign stages, wrap callbacks
+    // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
     this.flattenCardSet (cards)
-    this.cards.forEach ((card) => {
+    this.cards.forEach ((card, n) => {
+      card.cardIndex = n
       card.left = card.left || {}
       card.right = card.right || {}
       this.makeCallbacks (card.left)
       this.makeCallbacks (card.right)
+      if (typeof(card.limit) !== 'undefined')
+        this.gameState.turns.byCard[n] = 0
     })
 
     //    console.log(JSON.stringify(this.cards,null,2))
@@ -188,13 +198,19 @@ const Dealer = (() => {
         userCallback (dealer.gameState, dealer)
         if (swiper.pop) {
           let pops = typeof(swiper.pop) === 'number' ? swiper.pop : 1
-          for (let n = 0; n < pops; ++n)
+          for (let n = 0; n < pops; ++n) {
             dealer.gameState.stage.pop()
+            dealer.gameState.turns.byStage.pop()
+          }
         }
-        if (swiper.push)
+        if (swiper.push) {
           dealer.gameState.stage = dealer.gameState.stage.concat (swiper.push)
-        if (swiper.stage)
+          dealer.gameState.turns.byStage.push (0)
+        }
+        if (swiper.stage) {
           dealer.gameState.stage = [swiper.stage]
+          dealer.gameState.turns.byStage = [0]
+        }
         dealer.nextCard()
       }
     },
@@ -207,9 +223,18 @@ const Dealer = (() => {
       let dealer = this
       let stage = this.currentStage(), gameState = this.gameState
       console.log()
-      console.log({gameState,stage})
+      console.log(JSON.stringify({gameState}))
       let cardWeight = this.cards.map ((card) => {
         if (card.when && card.when.length && card.when.filter ((when) => when === stage).length === 0)
+          return 0
+        let turnsByCard = gameState.turns.byCard[card.cardIndex]
+        let turnsByStage = gameState.turns.byStage[gameState.turns.byStage.length-1]
+        let turnsTotalByStage = gameState.turns.totalByStage[stage]
+        if ((card.limit && turnsByCard >= card.limit)
+            || (card.minTurnsAtStage && turnsByStage < card.minTurnsAtStage)
+            || (card.maxTurnsAtStage && turnsByStage > card.maxTurnsAtStage)
+            || (card.minTotalTurnsAtStage && turnsTotalByStage < card.minTotalTurnsAtStage)
+            || (card.maxTotalTurnsAtStage && turnsTotalByStage > card.maxTotalTurnsAtStage))
           return 0
         let w = card.weight
         if (typeof(w) === 'undefined')
@@ -220,6 +245,12 @@ const Dealer = (() => {
       })
       const template = this.cards[this.sampleByWeight (cardWeight)]
       if (typeof(template) !== 'undefined') {
+        if (template.limit)
+          ++gameState.turns.byCard[template.cardIndex]
+        ++gameState.turns.byStage[gameState.turns.byStage.length - 1]
+        gameState.turns.totalByStage[stage] = (gameState.turns.totalByStage[stage] || 0) + 1
+        gameState.turns.total++
+        
         let card = {
           html: this.evalString (template.html),
           className: template.className,

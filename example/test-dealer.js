@@ -10,6 +10,7 @@ const config = {
   meters: [{ name: 'coins' },
            { name: 'castle' }],
   cards: [{ html: 'test card',
+            limit: 2,
             when: 'start',
             left: { scaledReward: { coins: .1 }, sequence: ["one",["two",2],"three"] },
 //            left: { stage: 'man', scaledReward: { coins: .1 } },
