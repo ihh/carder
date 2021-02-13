@@ -10,8 +10,9 @@ const Carder = (() => {
     this.container = $('<div class="carder">')
       .append (this.statbar = $('<div class="statbar">'),
                $('<div class="cardbar">')
-               .html ($('<div class="cardtable">')
-                      .html (this.stackDiv = $('<div class="stack">'))),
+               .append (this.statusDiv = $('<div class="status">'),
+                        $('<div class="cardtable">')
+                        .html (this.stackDiv = $('<div class="stack">'))),
                this.makeThrowArrowContainer(),
                this.previewBar = $('<div class="previewbar">')
                .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this)),
