@@ -3,7 +3,7 @@
 const Dealer = require('../js/dealer.js')
 const FakeCarder = require('./fake-carder.js')
 
-let c = new FakeCarder()
+let c = new FakeCarder ({ status: (s) => console.log(s) })
 
 const config = {
   carder: c,
@@ -17,7 +17,8 @@ const config = {
                       limit: 2,
                       cool: 1,
                       left: { scaledReward: { coins: .1 }, sequence: ["one",["two",2],"three"] },
-                      right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] }]
+                      right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] }],
+  status: (gs) => `Coins=${gs.coins} Castle=${gs.castle}`
 }
 
 let d = new Dealer (config)

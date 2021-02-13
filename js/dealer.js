@@ -116,6 +116,10 @@ const Dealer = (() => {
       }
     })
 
+    // set status message
+    if (config.status)
+      carder.setStatus (() => config.status (this.gameState, this))
+    
     // return from constructor
     return this
   }

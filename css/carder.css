@@ -197,6 +197,10 @@ input {
     padding: 4px 20px;
 }
 
+.carder.flipped .stack {
+    pointer-events: none;
+}
+
 .carder .stack .card {
     position:relative;
     max-height: 160vw;

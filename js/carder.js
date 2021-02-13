@@ -55,10 +55,8 @@ const Carder = (() => {
 
     // finish setting up controls
     this.disableThrowButtons()
-    if (this.config.status) {
-      this.statbar.on ('click', this.toggleStatus.bind(this))
-      this.statusMode = false
-    }
+    this.statbar.on ('click', this.toggleStatus.bind(this))
+    this.statusMode = false
 
     // return from constructor
     return this
@@ -223,6 +221,7 @@ const Carder = (() => {
         carder.startDrag()
       })
       card.on ('throwinend', function() {
+        cardDiv.removeClass('throwing')
         if (!cardDiv.hasClass('dragging')) {  // a bit hacky using the DOM to pass state like this, oh well
           carder.stopDrag()
           carder.drawMeters()
@@ -428,6 +427,10 @@ const Carder = (() => {
     resizeListener: function() {
       this.drawMeters()
     },
+
+    setStatus: function (status) {
+      this.status = status
+    },
     
     addMeter: function (config) {
       let carder = this
@@ -541,13 +544,17 @@ const Carder = (() => {
     },
 
     toggleStatus: function() {
-      this.statusMode = !this.statusMode
-      if (this.statusMode) {
-        this.statusDiv.html (this.config.status())
-        this.statusScrollDiv[0].scrollTop = 0
-        this.container.addClass ('flipped')
-      } else {
-        this.container.removeClass ('flipped')
+      if (this.status) {
+        this.statusMode = !this.statusMode
+        if (this.statusMode && !$('.throwing').length) {  // hacky passing state through DOM; prevents bug where user can flip while card is still snapping back, somehow this messes arrowcontainer up
+          this.stopDrag()
+          this.cancelModalThrow()
+          this.statusDiv.html (this.status())
+          this.statusScrollDiv[0].scrollTop = 0
+          this.container.addClass ('flipped')
+        } else {
+          this.container.removeClass ('flipped')
+        }
       }
     },
   })

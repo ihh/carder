@@ -1,9 +1,13 @@
 # carder
 
-A lightweight project that wraps Gajus Kuizinas' [Swing](https://github.com/gajus/swing)
-with some user interface elements (hints, meters)
-suitable for building a bare-bones card-swiping interactive fiction story,
+This project contains several modules: Carder, Dealer, and FakeCarder.
+
+## Carder
+
+Carder is a basic, low-level API suitable for building a bare-bones card-swiping interactive fiction story,
 _a la_ "Rei*ns".
+It combines Gajus Kuizinas' card-swiping library [Swing](https://github.com/gajus/swing)
+with some simple user interface elements (hints, meters, status page).
 
 For a basic demo (illustrating only the functionality, no content) see [here](https://ihh.github.io/carder/).
 
@@ -31,5 +35,17 @@ $(document).ready (() => {
 }
 deal()
 ~~~~
+
+## FakeCarder
+
+FakeCarder has an identical API to Carder, but can be run on the command-line instead of the web browser. It is useful for debugging.
+
+## Dealer
+
+Dealer is a basic game engine for Carder, essentially a big state machine with a collection of cards at every node.
+
+_To do: write Dealer documentation_
+
+## Misc credits
 
 Icons from https://game-icons.net/

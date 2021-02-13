@@ -21,6 +21,8 @@ const FakeCarder = function (config) {
   process.stdin.on ('keypress', (str, key) => {
     if (key.name === 'escape' || (key.ctrl && (key.name === 'c' || key.name === 'd' || key.name === 'z')))
       process.exit()
+    else if (key.name === 's' && this.status)
+      console.log ('Status: ' + this.status())
     else if (key.name === 'left' || key.name === 'right') {
       console.log ('<' + key.name + '>')
       const cb = key.name === 'left' ? this.leftCallback : this.rightCallback
@@ -44,6 +46,10 @@ function previewSwiper (title, swiper) {
 }
 
 extend (FakeCarder.prototype, {
+  setStatus: function (status) {
+    this.status = status
+  },
+    
   addMeter: function (meter) {
     this.meters.push (meter)
   },
