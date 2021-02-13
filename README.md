@@ -15,6 +15,7 @@ For a basic demo (illustrating only the functionality, no content) see [here](ht
 $(document).ready (() => {
   c = new Carder ({ parent: "carder" })   // add to parent element with ID 'carder'
   let coins = 0.5, castle = 0.5
+  c.setStatus (() => `You have ${coins} coins and ${castle} castles.`)
   c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
   c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
   function deal (message) {
