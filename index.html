@@ -14,6 +14,7 @@
       let c, coins = 0.5, castle = 0.5
       $(document).ready (() => {
 	c = new Carder ({ parent: "carder",
+			  status: () => `<p><b>Status</b></p><p>Coins: ${coins}</p><p>Castle: ${castle}</p>` + longText() + manyParas(),
 			  defaultCallback: dealFirstCard })
 	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
 	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
@@ -37,7 +38,9 @@
 	}
 	function dealFirstCard() { deal ('<p><i>Demo card</i></p><p><img src="meters/coins.svg"></img></p><p>More text</p>', 'title') }
 	dealFirstCard()
-//	let msg = ''; for (let n = 1; n <= 100; ++n) msg += 'longtext' + n; deal(msg,'title')
+	function longText() { let msg = ''; for (let n = 1; n <= 100; ++n) msg += 'longtext' + n; return msg }
+	function manyParas() { let msg = ''; for (let n = 1; n <= 100; ++n) msg += '<p>longtext' + n + '</p>'; return msg }
+	// deal(longText(),'title')
       })
     </script>
   </body>

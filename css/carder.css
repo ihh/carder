@@ -52,6 +52,14 @@ input {
     flex-direction: row;
 
     padding: 0px 20px;
+    margin-top: 44px;
+
+    transition: .6s;
+}
+
+.carder.flipped .previewbar {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .previewbar .button {
@@ -107,6 +115,18 @@ input {
     opacity: 0;
 }
 
+.carder .outercardbar {
+    position: relative;
+    
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+
+    padding: 4px 10px;
+
+    perspective: 300vh;
+}
+
 .carder .cardbar {
     position: relative;
     
@@ -114,27 +134,57 @@ input {
     display: flex;
     flex-direction: column;
 
-    padding: 4px 20px;
+    transition: 0.6s;
+    transform-style: preserve-3d;
+}
+
+.carder.flipped .cardbar {
+    transform: rotateY(180deg);
+}
+
+.carder .outercardtable {
+    transform: rotateY(0deg);
+}
+
+.carder .outerstatus {
+    transform: rotateY(180deg);
+}
+
+.carder .outercardtable,
+.carder .outerstatus {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.carder .status,
+.carder .cardtable {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0px;
 }
 
 .carder .status {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 50;
-    pointer-events: none;
+    overflow-y: scroll;
+}
+
+.carder .statusinfo {
+    flex-grow: 1;
+    padding: 4px 20px;
+    word-break: break-word;
+
+    font-size: 3vh;
+    line-height: 3.75vh;
 }
 
 .carder .cardtable {
-    position: relative;
-
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-
-    padding: 4px;
+    z-index: 2;
 }
 
 .carder .stack {
@@ -192,7 +242,7 @@ input {
     pointer-events: none;
 }
 						      
-.carder .stack .jiggle:last-child:not(.dragging):not(.throwing) {
+.carder:not(.flipped) .stack .jiggle:last-child:not(.dragging):not(.throwing) {
     animation: jiggle 5s ease 0s infinite;
     -moz-animation: jiggle 5s ease 0s infinite;
     -webkit-animation: jiggle 5s ease 0s infinite;
@@ -447,6 +497,10 @@ input {
 .carder .arrowcontainer.dragging:not(.leftdrag) .leftarrowstripe,
 .carder .arrowcontainer.dragging:not(.rightdrag) .rightarrowstripe {
     opacity: 0;
+}
+
+.carder.flipped .arrowcontainer {
+    display: none;
 }
 
 .carder .card img {

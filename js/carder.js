@@ -9,10 +9,14 @@ const Carder = (() => {
                 config })
     this.container = $('<div class="carder">')
       .append (this.statbar = $('<div class="statbar">'),
-               $('<div class="cardbar">')
-               .append (this.statusDiv = $('<div class="status">'),
-                        $('<div class="cardtable">')
-                        .html (this.stackDiv = $('<div class="stack">'))),
+               $('<div class="outercardbar">')
+               .html ($('<div class="cardbar">')
+                      .append ($('<div class="outercardtable">')
+                               .html ($('<div class="cardtable">')
+                                      .html (this.stackDiv = $('<div class="stack">'))),
+                               $('<div class="outerstatus">')
+                               .html (this.statusScrollDiv = $('<div class="status">')
+                                      .html (this.statusDiv = $('<div class="statusinfo">'))))),
                this.makeThrowArrowContainer(),
                this.previewBar = $('<div class="previewbar">')
                .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this)),
@@ -22,7 +26,7 @@ const Carder = (() => {
                         this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this)),
                         this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
                         this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide()))
-    this.disableThrowButtons()
+    this.restoreScrolling (this.statusScrollDiv)
     this.pageContainer = $('#'+(config.parent || this.parent))
       .addClass("carder-page")
       .addClass (this.defaultTheme)
@@ -48,6 +52,13 @@ const Carder = (() => {
     // listen for resize
     $(document).on ('resize', carder.resizeListener.bind(carder))
     $(window).on ('resize', carder.resizeListener.bind(carder))
+
+    // finish setting up controls
+    this.disableThrowButtons()
+    if (this.config.status) {
+      this.statbar.on ('click', this.toggleStatus.bind(this))
+      this.statusMode = false
+    }
 
     // return from constructor
     return this
@@ -107,6 +118,27 @@ const Carder = (() => {
     browserIsSafari: function() {
       let ua = navigator.userAgent.toLowerCase()
       return ua.indexOf('safari') !== -1
+    },
+
+    restoreScrolling: function (elem) {
+      // allow scrolling for elem, while preventing bounce at ends
+      // http://stackoverflow.com/a/20477023/726581
+      elem.on('touchstart', function(event) {
+        this.allowUp = (this.scrollTop > 0);
+        this.allowDown = (this.scrollTop < this.scrollHeight - this.clientHeight);
+        this.slideBeginY = event.pageY;
+      });
+      elem.on('touchmove', function(event) {
+        var up = (event.pageY > this.slideBeginY);
+        var down = (event.pageY < this.slideBeginY);
+        this.slideBeginY = event.pageY;
+        if ((up && this.allowUp) || (down && this.allowDown)) {
+          event.stopPropagation();
+        }
+        else {
+          event.preventDefault();
+        }
+      });
     },
     
     // builders
@@ -333,26 +365,28 @@ const Carder = (() => {
     },
     
     modalThrowLeft: function() {
-      if (!this.throwButtonsDisabled) {
-        this.dragPreview ({ throwDirection: swing.Direction.LEFT,
-                            throwOutConfidence: 1 })
-        this.throwLeftDiv.hide()
-        this.throwRightDiv.hide()
-        this.confirmThrowLeftDiv.show()
-        this.cancelThrowLeftDiv.show()
-        this.modalThrower = this.throwLeft
-      }
+      if (!this.throwButtonsDisabled)
+        window.requestAnimationFrame (() => {
+          this.resetPreviewBar()
+          this.throwLeftDiv.hide()
+          this.throwRightDiv.hide()
+          this.confirmThrowLeftDiv.show()
+          this.cancelThrowLeftDiv.show()
+          this.modalThrower = this.throwLeft
+          window.setTimeout (() => this.dragPreview ({ throwDirection: swing.Direction.LEFT,
+                                                       throwOutConfidence: 1 }), 0)
+        })
     },
 
     modalThrowRight: function() {
       if (!this.throwButtonsDisabled) {
-        this.dragPreview ({ throwDirection: swing.Direction.RIGHT,
-                            throwOutConfidence: 1 })
         this.throwLeftDiv.hide()
         this.throwRightDiv.hide()
         this.confirmThrowRightDiv.show()
         this.cancelThrowRightDiv.show()
         this.modalThrower = this.throwRight
+        window.setTimeout (() => this.dragPreview ({ throwDirection: swing.Direction.RIGHT,
+                                                     throwOutConfidence: 1 }), 0)
       }
     },
 
@@ -506,6 +540,16 @@ const Carder = (() => {
       }
     },
 
+    toggleStatus: function() {
+      this.statusMode = !this.statusMode
+      if (this.statusMode) {
+        this.statusDiv.html (this.config.status())
+        this.statusScrollDiv[0].scrollTop = 0
+        this.container.addClass ('flipped')
+      } else {
+        this.container.removeClass ('flipped')
+      }
+    },
   })
 
   return Carder

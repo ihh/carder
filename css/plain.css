@@ -36,12 +36,18 @@ body,
 }
 
 /* Card table */
+.plain .carder .status,
 .plain .carder .cardtable {
     background-color: darkgreen;  /* old browsers */
     background: linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
     background: -webkit-linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
     background: -moz-linear-gradient(-45deg, #107400 0%,#006400 28%,#004400 100%);
-    box-shadow: 2px 2px 1px 1px #003200;
+    box-shadow: 1px 1px 1px 1px #003200,
+		2px 2px 1px 1px #002800,
+		3px 3px 1px 1px #002400,
+		4px 4px 1px 1px #002000,
+		5px 5px 1px 1px #001c00,
+		6px 6px 1px 1px #001800;
 }
 
 .plain .carder .preview {
@@ -141,4 +147,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fddeb5', end
 
 .plain .carder .card img {
     background: lightyellow;
+}
+
+.plain .carder .status {
+    color: white;
 }
