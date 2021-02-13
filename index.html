@@ -20,6 +20,7 @@
 	function deal (message, type) {
 	  c.dealCard ({ html: message,
 			className: type,
+			align: type === 'title',
 			left: {
 			  hint: 'very long left hint text',
 			  preview: "It might be inadvisable under the present circumstances, but I'm thinking of swiping left. Again: It might be inadvisable under the present circumstances, but I'm thinking of swiping left. Third time lucky: It might be inadvisable under the present circumstances, but I'm thinking of swiping left. This is a very long piece of preview text to check that the auto-shrinking mechanism is working correctly.",
