@@ -138,3 +138,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fddeb5', end
 .plain .carder .arrowcontainer .arrow svg {
     fill: #222;
 }
+
+.plain .carder .card img {
+    background: lightyellow;
+}

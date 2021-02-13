@@ -435,3 +435,11 @@ input {
 .carder .arrowcontainer.dragging:not(.rightdrag) .rightarrowstripe {
     opacity: 0;
 }
+
+.carder .card img {
+    max-width: 20vh;
+    border-style: solid;
+    border-radius: 10px;
+
+    pointer-events: none;
+}
