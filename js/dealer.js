@@ -278,7 +278,7 @@ const Dealer = (() => {
         if (swiper.stage) {
           gs.stage = [swiper.stage]
           gs.turns.byStage = [0]
-          gs.history.byStage = []
+          gs.history.byStage = [[]]
         }
         dealer.nextCard()
       }

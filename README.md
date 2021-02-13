@@ -46,6 +46,9 @@ FakeCarder has an identical API to Carder, but can be run on the command-line in
 Dealer is a basic game engine built on top of Carder, essentially a big state machine with a collection of cards at each node.
 It transparently handles persistence of state over page reloads.
 
+From a UI perspective, Dealer looks basically like Carder, except with persistence of state.
+A basic demo with a few boring test cards is [here](https://ihh.github.io/carder/example/).
+
 _To do: write Dealer documentation_
 
 ## Misc credits

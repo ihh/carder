@@ -29,7 +29,8 @@
 			      limit: 2,
 			      cool: 1,
 			      left: { scaledReward: { coins: .1 }, sequence: ["one",["two",2],"three"] },
-			      right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] }],
+			      right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] },
+		  { html: 'Time passes...', priority: -1 }],
 	  status: (gs) => `Coins=${gs.coins} Castle=${gs.castle}`
 	}
 	d = new Dealer (config)
