@@ -22,4 +22,4 @@ const config = {
 }
 
 let d = new Dealer (config)
-d.nextCard()
+d.dealFirstCard()

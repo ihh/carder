@@ -152,3 +152,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fddeb5', end
 .plain .carder .status {
     color: white;
 }
+
+.plain .carder .status .restart {
+    background-color: #083a00;
+    border-color: #0c1d00;
+}

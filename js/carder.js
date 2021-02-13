@@ -1,64 +1,7 @@
 const Carder = (() => {
   const Carder = function (config) {
-    let carder = this
-    config = config || {}
-    $.extend (this,
-              { iconPromise: {},
-                svg: {},
-                meters: [],
-                config })
-    this.container = $('<div class="carder">')
-      .append (this.statbar = $('<div class="statbar">'),
-               $('<div class="outercardbar">')
-               .html ($('<div class="cardbar">')
-                      .append ($('<div class="outercardtable">')
-                               .html ($('<div class="cardtable">')
-                                      .html (this.stackDiv = $('<div class="stack">'))),
-                               $('<div class="outerstatus">')
-                               .html (this.statusScrollDiv = $('<div class="status">')
-                                      .html (this.statusDiv = $('<div class="statusinfo">'))))),
-               this.makeThrowArrowContainer(),
-               this.previewBar = $('<div class="previewbar">')
-               .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this)),
-                        this.confirmThrowLeftDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
-                        this.cancelThrowRightDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide(),
-                        this.previewDiv = $('<div class="preview">'),
-                        this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this)),
-                        this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
-                        this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide()))
-    this.restoreScrolling (this.statusScrollDiv)
-    this.pageContainer = $('#'+(config.parent || this.parent))
-      .addClass("carder-page")
-      .addClass (this.defaultTheme)
-      .append ($('<div class="carder-browser-wrap">')
-               .append ($('<div class="carder-top-pad">'),
-                        this.container,
-                        $('<div class="carder-bottom-pad">')))
-
-    // prevent scrolling/viewport bump on iOS Safari
-    document.addEventListener ('touchmove', function(e){
-      e.preventDefault()
-    }, {passive: false})
-
-    // initialize the swing Stack
-    this.stack = swing.Stack ({ throwOutConfidence: carder.throwOutConfidence,
-			        throwOutDistance: function() { return carder.throwXOffset() },
-			        allowedDirections: [
-				  swing.Direction.LEFT,
-				  swing.Direction.RIGHT
-			        ],
-                                isThrowOut: carder.isThrowOut.bind(carder) })
-
-    // listen for resize
-    $(document).on ('resize', carder.resizeListener.bind(carder))
-    $(window).on ('resize', carder.resizeListener.bind(carder))
-
-    // finish setting up controls
-    this.disableThrowButtons()
-    this.statbar.on ('click', this.toggleStatus.bind(this))
-    this.statusMode = false
-
-    // return from constructor
+    this.config = config || {}
+    this.init()
     return this
   }
 
@@ -83,6 +26,8 @@ const Carder = (() => {
     maxCardTextShrink: 4,
     maxHintTextShrink: 4,
     maxPreviewTextShrink: 4,
+    defaultRestartText: 'Restart',
+    defaultRestartConfirmText: 'Restart the game?',
     
     // helpers
     isTouchDevice: function() {
@@ -138,6 +83,68 @@ const Carder = (() => {
         }
       });
     },
+
+    // constructor
+    init: function() {
+      let carder = this
+      let config = this.config
+      $.extend (this,
+                { iconPromise: {},
+                  svg: {},
+                  meters: [] })
+      if (config.iconPrefix)
+        this.iconPrefix = config.iconPrefix
+      this.container = $('<div class="carder">')
+        .append (this.statbar = $('<div class="statbar">'),
+                 $('<div class="outercardbar">')
+                 .html ($('<div class="cardbar">')
+                        .append ($('<div class="outercardtable">')
+                                 .html ($('<div class="cardtable">')
+                                        .html (this.stackDiv = $('<div class="stack">'))),
+                                 $('<div class="outerstatus">')
+                                 .html (this.statusScrollDiv = $('<div class="status">')
+                                        .html (this.statusDiv = $('<div class="statusinfo">'))))),
+                 this.makeThrowArrowContainer(),
+                 this.previewBar = $('<div class="previewbar">')
+                 .append (this.throwLeftDiv = this.makeIconButton ('throwleft', this.modalThrowLeft.bind(this)),
+                          this.confirmThrowLeftDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
+                          this.cancelThrowRightDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide(),
+                          this.previewDiv = $('<div class="preview">'),
+                          this.throwRightDiv = this.makeIconButton ('throwright', this.modalThrowRight.bind(this)),
+                          this.confirmThrowRightDiv = this.makeIconButton ('yes', this.confirmModalThrow.bind(this)).hide(),
+                          this.cancelThrowLeftDiv = this.makeIconButton ('no', this.cancelModalThrow.bind(this)).hide()))
+      this.restoreScrolling (this.statusScrollDiv)
+      this.pageContainer = $('#'+(config.parent || this.parent))
+        .addClass("carder-page")
+        .addClass (this.defaultTheme)
+        .append ($('<div class="carder-browser-wrap">')
+                 .append ($('<div class="carder-top-pad">'),
+                          this.container,
+                          $('<div class="carder-bottom-pad">')))
+
+      // prevent scrolling/viewport bump on iOS Safari
+      document.addEventListener ('touchmove', function(e){
+        e.preventDefault()
+      }, {passive: false})
+
+      // initialize the swing Stack
+      this.stack = swing.Stack ({ throwOutConfidence: carder.throwOutConfidence,
+			          throwOutDistance: function() { return carder.throwXOffset() },
+			          allowedDirections: [
+				    swing.Direction.LEFT,
+				    swing.Direction.RIGHT
+			          ],
+                                  isThrowOut: carder.isThrowOut.bind(carder) })
+
+      // listen for resize
+      $(document).on ('resize', carder.resizeListener.bind(carder))
+      $(window).on ('resize', carder.resizeListener.bind(carder))
+
+      // finish setting up controls
+      this.disableThrowButtons()
+      this.statbar.on ('click', this.toggleStatus.bind(this))
+      this.statusMode = false
+  },
     
     // builders
     makeThrowArrowContainer: function (config) {
@@ -431,13 +438,20 @@ const Carder = (() => {
     setStatus: function (status) {
       this.status = status
     },
-    
+
+    setRestart: function (restart, text, confirm) {
+      this.restart = restart
+      this.restartText = text || this.defaultRestartText
+      this.restartConfirm = confirm || (text ? (text + '?') : this.defaultRestartConfirmText)
+    },
+
     addMeter: function (config) {
       let carder = this
       let promise = this.getIconPromise (config.icon)
       return promise.then (() => {
         carder.meters.push ({ name: config.name,
-                              icon: promise,
+                              icon: config.icon,
+                              iconPromise: promise,
                               level: config.level || function() { return 0 } })
         carder.drawMeters()
       })
@@ -479,7 +493,7 @@ const Carder = (() => {
           newDivs.push (meterDiv)
           const clipRect = this.meterClipRect (newHeight)
           return redrawn.then (() => {
-            meter.icon.then ((svg) => {
+            meter.iconPromise.then ((svg) => {
               function makeMeter() {
                 return $('<div class="icons">')
                   .css (dim)
@@ -544,18 +558,36 @@ const Carder = (() => {
     },
 
     toggleStatus: function() {
-      if (this.status) {
+      if (this.status || this.restart) {
         this.statusMode = !this.statusMode
         if (this.statusMode && !$('.throwing').length) {  // hacky passing state through DOM; prevents bug where user can flip while card is still snapping back, somehow this messes arrowcontainer up
           this.stopDrag()
           this.cancelModalThrow()
-          this.statusDiv.html (this.status())
+          this.statusDiv.empty()
+          if (this.restart)
+            this.statusDiv.append ($('<div class="restartbar">')
+                                   .html ($('<div class="restart">')
+                                          .text (this.restartText)
+                                          .on ('click', () => window.confirm(this.restartConfirm) && this.restart())))
+          if (this.status)
+            this.statusDiv.append (this.status())
           this.statusScrollDiv[0].scrollTop = 0
           this.container.addClass ('flipped')
         } else {
           this.container.removeClass ('flipped')
         }
       }
+    },
+
+    reset: function() {
+      this.cancelMeterAnimationFrame()
+      this.pageContainer.empty()
+      let meters = this.meters.slice(0)
+      this.init()
+      meters.reduce ((promise, meter) => promise.then (() => {
+        delete meter.lastHeight
+        this.addMeter(meter)
+      }), $.Deferred().resolve())
     },
   })
 

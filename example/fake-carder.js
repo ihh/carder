@@ -50,6 +50,10 @@ extend (FakeCarder.prototype, {
     this.status = status
   },
     
+  setRestart: function (resetCallback, resetText, resetConfirmText) {
+    // does nothing
+  },
+  
   addMeter: function (meter) {
     this.meters.push (meter)
   },

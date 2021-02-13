@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>Carder</title>
+    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
+    <link rel="stylesheet" href="../css/carder.css"></link>
+    <link rel="stylesheet" href="../css/plain.css"></link>
+    <script src="../js/jquery-3.5.1.min.js"></script>
+    <script src="../js/swing.js"></script>
+    <script src="../js/carder.js"></script>
+    <script src="../js/dealer.js"></script>
+  </head>
+  <body>
+    <div id="carder"/>
+    <script>
+      let c, d
+      $(document).ready (() => {
+	c = new Carder ({ iconPrefix: '../img/' })
+	const config = {
+	  carder: c,
+	  debug: true,
+	  meterIconPrefix: '../meters/',
+	  meters: [{ name: 'coins' },
+		   { name: 'castle' }],
+	  cards: [{ html: 'hello', priority: 2, limit: 1, left: { reward: { coins: .1 } } },
+		  { html: 'world', priority: 1, limit: 1 },
+		  { when: 'start',
+		    cards: [{ html: 'filler', cool: 1 },
+			    { html: 'test card',
+			      limit: 2,
+			      cool: 1,
+			      left: { scaledReward: { coins: .1 }, sequence: ["one",["two",2],"three"] },
+			      right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] }],
+	  status: (gs) => `Coins=${gs.coins} Castle=${gs.castle}`
+	}
+	d = new Dealer (config)
+	d.dealFirstCard()
+      })
+    </script>
+  </body>
+</html>

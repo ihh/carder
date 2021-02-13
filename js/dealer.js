@@ -43,6 +43,18 @@ const Dealer = (() => {
     return dest;
   }
 
+  const deepCopy = (inObject) => {
+    let outObject, value, key
+    if (typeof inObject !== "object" || inObject === null)
+      return inObject
+    outObject = Array.isArray(inObject) ? [] : {}
+    for (key in inObject) {
+      value = inObject[key]
+      outObject[key] = deepCopy(value)
+    }
+    return outObject
+  }
+  
   const isBrowser = new Function ("try {return this===window;}catch(e){ return false;}")
   const isNode = new Function("try {return this===global;}catch(e){return false;}")
   
@@ -59,12 +71,105 @@ const Dealer = (() => {
     if (!cards)
       throw new Error ("Dealer needs cards")
 
+    this.initGameState = this.makeInitGameState (config.gameState)
+    this.localStorage = config.localStorage || (isBrowser() && eval('window.localStorage'))
+    this.localStorageKey = config.localStorageKey || this.defaultLocalStorageKey
     extend (this, {
       carder,
       cards: [],
       meter: {},
       anonStageCount: 0,
-      gameState: extend ({
+      meterIconPrefix: config.meterIconPrefix || this.defaultIconPathPrefix,
+      debug: config.debug
+    })
+    
+    // create meters
+    meters.forEach ((meter) => {
+      if (!meter.iconName)
+        meter.icon = this.meterIconPrefix + meter.name + this.defaultIconPathSuffix
+      if (meter.level)
+        carder.addMeter ({ name: meter.name,
+                           icon: meter.icon,
+                           level: () => meter.level (this.gameState) })
+      else {
+        this.meter[meter.name] = meter
+        if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
+          extend (meter, { min: 0, max: 1 })
+        if (typeof(meter.min) === 'undefined' && meter.max > 0)
+          meter.min = 0
+        if (typeof(this.initGameState[meter.name]) === 'undefined')
+          this.initGameState[meter.name] = typeof(meter.init) === 'undefined' ? ((meter.max + meter.min) / 2) : meter.init
+        carder.addMeter ({ name: meter.name,
+                           icon: meter.icon,
+                           level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) })
+      }
+    })
+
+    // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
+    this.flattenCardSet (cards)
+    this.cards.forEach ((card, n) => {
+      card.cardIndex = n
+      card.left = card.left || {}
+      card.right = card.right || {}
+      this.makeCallbacks (card.left)
+      this.makeCallbacks (card.right)
+      if (typeof(card.limit) !== 'undefined')
+        this.initGameState._.turns.byCard[n] = 0
+    })
+    
+    if (this.debug)
+      console.log (this.cards)
+
+    // set initial game state
+    this.gameState = this.storedGameState() || deepCopy (this.initGameState)
+    
+    // set status message
+    if (config.status)
+      carder.setStatus (() => config.status (this.gameState, this))
+
+    // set reset callback
+    carder.setRestart (() => {
+      this.deleteStoredGame()
+      this.gameState = deepCopy (this.initGameState)
+      carder.reset()
+      this.dealFirstCard()
+    }, config.resetText, config.resetConfirmText)
+
+    // return from constructor
+    return this
+  }
+
+  extend (Dealer.prototype, {
+    // configuration
+    startStage: 'start',
+    defaultIconPathPrefix: 'img/',
+    defaultIconPathSuffix: '.svg',
+    defaultLocalStorageKey: 'Carder.Dealer',
+    
+    // methods
+    storedGame: function() {
+      let g
+      try {
+        let store = this.localStorage && this.localStorage.getItem (this.localStorageKey)
+        g = store && JSON.parse (store)
+      } catch (e) {
+        this.deleteStoredGame()
+      }
+      return g
+    },
+
+    storedGameState: function() {
+      let store = this.storedGame()
+      return store && store.gameState
+    },
+
+    deleteStoredGame: function() {
+      if (this.localStorage)
+        this.localStorage.removeItem (this.localStorageKey)
+    },
+    
+    makeInitGameState: function (templateInitGameState) {
+      return extend ({
         _: {
           stage: [this.startStage],
           turns: {
@@ -77,60 +182,9 @@ const Dealer = (() => {
             byStage: [[]],
           },
         }
-      }, config.gameState || {})
-    })
-
-    // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
-    this.flattenCardSet (cards)
-    this.cards.forEach ((card, n) => {
-      card.cardIndex = n
-      card.left = card.left || {}
-      card.right = card.right || {}
-      this.makeCallbacks (card.left)
-      this.makeCallbacks (card.right)
-      if (typeof(card.limit) !== 'undefined')
-        this.gameState._.turns.byCard[n] = 0
-    })
-
-    //    console.log(JSON.stringify(this.cards,null,2))
-    console.log(this.cards)
+      }, templateInitGameState || {})
+    },
     
-    // create meters
-    meters.forEach ((meter) => {
-      if (!meter.icon)
-        meter.icon = this.defaultIconPathPrefix + meter.name + this.defaultIconPathSuffix
-      if (meter.level)
-        carder.addMeter ({ name: meter.name,
-                           icon: meter.icon,
-                           level: () => meter.level (this.gameState) })
-      else {
-        this.meter[meter.name] = meter
-        if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
-          extend (meter, { min: 0, max: 1 })
-        if (typeof(meter.min) === 'undefined' && meter.max > 0)
-          meter.min = 0
-        this.gameState[meter.name] = typeof(meter.init) === 'undefined' ? ((meter.max + meter.min) / 2) : meter.init
-        carder.addMeter ({ name: meter.name,
-                           icon: meter.icon,
-                           level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) })
-      }
-    })
-
-    // set status message
-    if (config.status)
-      carder.setStatus (() => config.status (this.gameState, this))
-    
-    // return from constructor
-    return this
-  }
-
-  extend (Dealer.prototype, {
-    // configuration
-    startStage: 'start',
-    defaultIconPathPrefix: 'img/',
-    defaultIconPathSuffix: '.svg',
-    
-    // methods
     newAnonStage: function() {
       return '!' + (++this.anonStageCount)
     },
@@ -203,9 +257,10 @@ const Dealer = (() => {
     },
 
     makeCallbacks: function (swiper) {
-      let dealer = this, gs = dealer.gameState._
+      let dealer = this
       let userCallback = swiper.cb || function(){}
       swiper.cb = () => {
+        let gs = dealer.gameState._
         userCallback (dealer.gameState, dealer)
         if (swiper.pop) {
           let pops = typeof(swiper.pop) === 'number' ? swiper.pop : 1
@@ -233,7 +288,16 @@ const Dealer = (() => {
       let gs = this.gameState._
       return gs.stage.length > 0 ? gs.stage[gs.stage.length - 1] : undefined
     },
-    
+
+    dealFirstCard: function() {
+      let g = this.storedGame()
+      if (g)
+        this.carder.dealCard (this.makeCard (this.cards[g.cardIndex],
+                                             g.cardHtml))
+      else
+        this.nextCard()
+    },
+
     nextCard: function() {
       let dealer = this
       let stage = this.currentStage(), gameState = this.gameState, gs = gameState._
@@ -295,18 +359,27 @@ const Dealer = (() => {
         gs.turns.total++
         gs.history.byStage[gs.history.byStage.length - 1].push (template.cardIndex)
         
-        let card = {
-          html: this.evalString (template.html),
-          className: template.className,
-          left: this.evalSwiper (template.left),
-          right: this.evalSwiper (template.right),
-          cardIndex: template.cardIndex   // not used by Carder, but used by FakeCarder for debugging
-        }
-
+        let card = this.makeCard (template)
         this.carder.dealCard (card)
+        if (this.localStorage)
+          this.localStorage.setItem (this.localStorageKey,
+                                     JSON.stringify ({ gameState: this.gameState,
+                                                       cardIndex: template.cardIndex,
+                                                       cardHtml: card.html }))
       }
     },
-
+    
+    makeCard: function (template, html) {
+      html = html || this.evalString (template.html)
+      return {
+        html,
+        className: template.className,
+        left: this.evalSwiper (template.left),
+        right: this.evalSwiper (template.right),
+        cardIndex: template.cardIndex   // not used by Carder, but used by FakeCarder for debugging
+      }
+    },
+    
     eval: function (x) {
       return typeof(x) === 'function' ? x(this.gameState,this) : x
     },
@@ -371,7 +444,7 @@ const Dealer = (() => {
       }
       return undefined
     },
-
+   
   })
 
   if (isNode())

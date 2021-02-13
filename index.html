@@ -18,6 +18,7 @@
 	c.setStatus (() => `<p><b>Status</b></p><p>Coins: ${coins}</p><p>Castle: ${castle}</p>` + longText() + manyParas())
 	c.addMeter ({ name: 'coins', icon: 'meters/coins.svg', level: () => coins })
 	c.addMeter ({ name: 'castle', icon: 'meters/castle.svg', level: () => castle })
+	c.setRestart (() => { c.reset(); dealFirstCard() })
 	function deal (message, type) {
 	  c.dealCard ({ html: message,
 			className: type,
