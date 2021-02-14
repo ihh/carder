@@ -396,7 +396,7 @@ const Dealer = (() => {
       if (!template)
         return undefined
       let swiper = { hint: this.evalString (template.hint),
-                     preview: this.evalString (template.preview) }
+                     preview: this.evalString (template.preview || template.hint) }
       let meterDelta
       if (template.reward || template.scaledReward) {
         swiper.meters = {}
