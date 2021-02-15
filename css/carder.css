@@ -308,12 +308,14 @@ input {
     margin-top: 25vh;
     width: 20vh;
     height: 20vh;
+    transform-origin: bottom center;
+}
 
+.carder .arrowcontainer:not(.dragging) .arrowstripe .hand {
     animation: handwobble 10s linear 0s infinite;
     -moz-animation: handwobble 10s linear 0s infinite;
     -webkit-animation: handwobble 10s linear 0s infinite;
 
-    transform-origin: bottom center;
 }
 
 @-webkit-keyframes handwobble {
@@ -367,7 +369,7 @@ input {
     100% { transform:scale(1) rotate(0deg) translate(0,0); opacity: 0; }
 }
 
-.carder .arrowcontainer .arrowstripe .hand #one-finger-contact-swipe-mark {
+.carder .arrowcontainer:not(.dragging) .arrowstripe .hand #one-finger-contact-swipe-mark {
     animation: swipepulse 10s linear 0s infinite;
     -moz-animation: swipepulse 10s linear 0s infinite;
     -webkit-animation: swipepulse 10s linear 0s infinite;
@@ -511,9 +513,9 @@ input {
     100% { right: 0vh; opacity: 0; }
 }
 
-.carder .arrowcontainer.throwing .arrowstripe .hand,
-.carder .arrowcontainer.dragging .arrowstripe .hand {
-    display: none;
+.carder .arrowcontainer.throwing .arrowcontainermain .arrowstripe .hand,
+.carder .arrowcontainer.dragging .arrowcontainermain .arrowstripe .hand {
+    opacity: 0;
 }
 
 .carder .arrowcontainer.throwing .arrowstripe,
