@@ -154,16 +154,19 @@ const Carder = (() => {
       carder.rightThrowArrow = $('<div class="arrowplustext">')
       let hand = $('<div class="hand">')
       carder.throwArrowContainer = $('<div class="arrowcontainer">')
-        .append ($('<div class="arrowstripe leftarrowstripe">')
-                 .append (carder.leftThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft')),
-                                   carder.leftThrowHint = $('<div class="text">'))),
-                 $('<div class="arrowstripe">')
-                 .html (hand.html (carder.makeIconButton ('swipe'))),
-                 $('<div class="arrowstripe rightarrowstripe">')
-                 .append (carder.rightThrowArrow
-                          .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight')),
-                                   carder.rightThrowHint = $('<div class="text">'))))
+        .append ($('<div class="arrowcontainertoprow">'),
+                 $('<div class="arrowcontainermain">')
+                 .append ($('<div class="arrowstripe leftarrowstripe">')
+                          .append (carder.leftThrowArrow
+                                   .append ($('<div class="arrow">').html (carder.makeIconButton ('swipeleft')),
+                                            carder.leftThrowHintContainer = $('<div class="textcontainer">').html (carder.leftThrowHint = $('<div class="text">')))),
+                          $('<div class="arrowstripe">')
+                          .html (hand.html (carder.makeIconButton ('swipe'))),
+                          $('<div class="arrowstripe rightarrowstripe">')
+                          .append (carder.rightThrowArrow
+                                   .append ($('<div class="arrow">').html (carder.makeIconButton ('swiperight')),
+                                            carder.rightThrowHintContainer = $('<div class="textcontainer">').html (carder.rightThrowHint = $('<div class="text">'))))),
+                 $('<div class="arrowcontainerbottomrow">'))
       return carder.throwArrowContainer
     },
 
@@ -252,8 +255,8 @@ const Carder = (() => {
       cardDiv.show()
 
       carder.shrinkToFit (innerDiv, carder.maxCardTextShrink)
-      carder.shrinkToFit (carder.leftThrowHint, carder.maxHintTextShrink)
-      carder.shrinkToFit (carder.rightThrowHint, carder.maxHintTextShrink)
+      carder.shrinkToFit (carder.leftThrowHint, carder.maxHintTextShrink, true)
+      carder.shrinkToFit (carder.rightThrowHint, carder.maxHintTextShrink, true)
 
       carder.stopDrag()
       // throw-in effect
@@ -545,16 +548,18 @@ const Carder = (() => {
         this.nextMeterAnimationFrame (framesLeft - 1)
     },
 
-    shrinkToFit: function (div, maxShrinkFactor) {
+    shrinkToFit: function (div, maxShrinkFactor, horizontal) {
       let factor = 1, multiplier = 1.1
       div.css('font-size','').css('line-height','')
-      const hasOverflow = () => div[0].scrollHeight > div[0].clientHeight || div[0].scrollWidth > div[0].clientWidth;
+      const hasOverflow = () => (!horizontal && div[0].scrollHeight > div[0].clientHeight) || div[0].scrollWidth > div[0].clientWidth;
       const initFontSize = parseFloat (div.css('font-size')), initLineHeight = parseFloat (div.css('line-height'))
       while (hasOverflow() && factor < maxShrinkFactor) {
         factor = Math.min (maxShrinkFactor, factor * multiplier)
-        div.css ('font-size', (initFontSize / factor) + 'px')
-        div.css ('line-height', (initLineHeight / factor) + 'px')
+        const fontSize = (initFontSize / factor) + 'px', lineHeight = (initLineHeight / factor) + 'px'
+        div.css ({ fontSize, lineHeight })
       }
+      if (horizontal)
+        div.css ('min-height', div.css ('line-height'))
     },
 
     toggleStatus: function() {

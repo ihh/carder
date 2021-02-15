@@ -141,6 +141,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fddeb5', end
     fill: #aa5;
 }
 
+.plain .carder .arrowcontainer .arrowstripe .arrowplustext .text {
+    color: white;
+}
+
 .plain .carder .arrowcontainer .arrow svg {
     fill: #222;
 }
