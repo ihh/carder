@@ -84,26 +84,28 @@ const Dealer = (() => {
     })
     
     // create meters
-    meters.forEach ((meter) => {
-      if (!meter.iconName)
-        meter.icon = this.meterIconPrefix + meter.name + this.defaultIconPathSuffix
-      if (meter.level)
-        carder.addMeter ({ name: meter.name,
-                           icon: meter.icon,
-                           level: () => meter.level (this.gameState) })
-      else {
-        this.meter[meter.name] = meter
-        if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
-          extend (meter, { min: 0, max: 1 })
-        if (typeof(meter.min) === 'undefined' && meter.max > 0)
-          meter.min = 0
-        if (typeof(this.initGameState[meter.name]) === 'undefined')
-          this.initGameState[meter.name] = typeof(meter.init) === 'undefined' ? ((meter.max + meter.min) / 2) : meter.init
-        carder.addMeter ({ name: meter.name,
-                           icon: meter.icon,
-                           level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) })
-      }
-    })
+    meters.reduce ((promise, meter) => {
+      return promise.then (() => {
+        if (!meter.iconName)
+          meter.icon = this.meterIconPrefix + meter.name + this.defaultIconPathSuffix
+        if (meter.level)
+          carder.addMeter ({ name: meter.name,
+                             icon: meter.icon,
+                             level: () => meter.level (this.gameState) })
+        else {
+          this.meter[meter.name] = meter
+          if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
+            extend (meter, { min: 0, max: 1 })
+          if (typeof(meter.min) === 'undefined' && meter.max > 0)
+            meter.min = 0
+          if (typeof(this.initGameState[meter.name]) === 'undefined')
+            this.initGameState[meter.name] = typeof(meter.init) === 'undefined' ? ((meter.max + meter.min) / 2) : meter.init
+          carder.addMeter ({ name: meter.name,
+                             icon: meter.icon,
+                             level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) })
+        }
+      })
+    }, $.Deferred().resolve())
 
     // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
     this.flattenCardSet (cards)
