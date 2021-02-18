@@ -84,14 +84,15 @@ const Dealer = (() => {
     })
     
     // create meters
-    meters.reduce ((promise, meter) => {
+    meters.reduce ((promise, meter, n) => {
       return promise.then (() => {
         if (!meter.iconName)
           meter.icon = this.meterIconPrefix + meter.name + this.defaultIconPathSuffix
         if (meter.level)
           return carder.addMeter ({ name: meter.name,
                                     icon: meter.icon,
-                                    level: () => meter.level (this.gameState) })
+                                    level: () => meter.level (this.gameState) },
+                                  n < meters.length - 1)
         else {
           this.meter[meter.name] = meter
           if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
@@ -102,7 +103,8 @@ const Dealer = (() => {
             this.initGameState[meter.name] = typeof(meter.init) === 'undefined' ? ((meter.max + meter.min) / 2) : meter.init
           return carder.addMeter ({ name: meter.name,
                                     icon: meter.icon,
-                                    level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) })
+                                    level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) },
+                                  n < meters.length - 1)
         }
       })
     }, $.Deferred().resolve())

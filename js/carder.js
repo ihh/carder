@@ -448,7 +448,7 @@ const Carder = (() => {
       this.restartConfirm = confirm || (text ? (text + '?') : this.defaultRestartConfirmText)
     },
 
-    addMeter: function (config) {
+    addMeter: function (config, suppressRedraw) {
       let carder = this
       let promise = this.getIconPromise (config.icon)
       return promise.then (() => {
@@ -456,7 +456,8 @@ const Carder = (() => {
                               icon: config.icon,
                               iconPromise: promise,
                               level: config.level || function() { return 0 } })
-        carder.drawMeters()
+        if (!suppressRedraw)
+          carder.drawMeters()
       })
     },
 
