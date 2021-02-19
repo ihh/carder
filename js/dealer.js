@@ -79,7 +79,7 @@ const Dealer = (() => {
     })
     
     // create meters
-    meters.reduce ((promise, meter, n) => {
+    this.initialized = meters.reduce ((promise, meter, n) => {
       return promise.then (() => {
         if (!meter.iconName)
           meter.icon = this.meterIconPrefix + meter.name + this.defaultIconPathSuffix
@@ -87,7 +87,7 @@ const Dealer = (() => {
           return carder.addMeter ({ name: meter.name,
                                     icon: meter.icon,
                                     level: () => meter.level (this.gameState) },
-                                  n < meters.length - 1)
+                                  true)
         else {
           this.meter[meter.name] = meter
           if (typeof(meter.min) === 'undefined' && typeof(meter.max) === 'undefined')
@@ -99,40 +99,43 @@ const Dealer = (() => {
           return carder.addMeter ({ name: meter.name,
                                     icon: meter.icon,
                                     level: () => Math.min (1, Math.max (0, (this.gameState[meter.name] - meter.min) / (meter.max - meter.min))) },
-                                  n < meters.length - 1)
+                                  true)
         }
       })
     }, $.Deferred().resolve())
+      .then (() => {
 
-    // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
-    this.flattenCardSet (cards, {})
-    this.cards.forEach ((card, n) => {
-      card.cardIndex = n
-      card.left = card.left || {}
-      card.right = card.right || {}
-      this.makeCallbacks (card.left)
-      this.makeCallbacks (card.right)
-      if (typeof(card.limit) !== 'undefined')
-        this.initGameState._.turns.byCard[n] = 0
-    })
-    
-    if (this.debug)
-      console.log (this.cards)
+        // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
+        this.flattenCardSet (cards, {})
+        this.cards.forEach ((card, n) => {
+          card.cardIndex = n
+          card.left = card.left || {}
+          card.right = card.right || {}
+          this.makeCallbacks (card.left)
+          this.makeCallbacks (card.right)
+          if (typeof(card.limit) !== 'undefined')
+            this.initGameState._.turns.byCard[n] = 0
+        })
+        
+        if (this.debug)
+          console.log (this.cards)
 
-    // set initial game state
-    this.gameState = this.storedGameState() || deepCopy (this.initGameState)
-    
-    // set status message
-    if (config.status)
-      carder.setStatus (() => config.status (this.gameState, this))
+        // set initial game state
+        this.gameState = this.storedGameState() || deepCopy (this.initGameState)
+        carder.drawMeters()
+        
+        // set status message
+        if (config.status)
+          carder.setStatus (() => config.status (this.gameState, this))
 
-    // set reset callback
-    carder.setRestart (() => {
-      this.deleteStoredGame()
-      this.gameState = deepCopy (this.initGameState)
-      carder.reset()
-      this.dealFirstCard()
-    }, config.resetText, config.resetConfirmText)
+        // set reset callback
+        carder.setRestart (() => {
+          this.deleteStoredGame()
+          this.gameState = deepCopy (this.initGameState)
+          carder.reset()
+          this.dealFirstCard()
+        }, config.resetText, config.resetConfirmText)
+      })
 
     // return from constructor
     return this
@@ -307,12 +310,14 @@ const Dealer = (() => {
     },
 
     dealFirstCard: function() {
-      let g = this.storedGame()
-      if (g)
-        this.carder.dealCard (this.makeCard (this.cards[g.cardIndex],
-                                             g.cardHtml))
-      else
-        this.nextCard()
+      this.initialized.then (() => {
+        let g = this.storedGame()
+        if (g)
+          this.carder.dealCard (this.makeCard (this.cards[g.cardIndex],
+                                               g.cardHtml))
+        else
+          this.nextCard()
+      })
     },
 
     nextCard: function() {
