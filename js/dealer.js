@@ -1,10 +1,10 @@
-// Provide Dealer with cards, meters
+// A 'cardSet' is an array of cards or staged cardSets, representing a collection of cards.
+// A 'sequence' is an array of cardSets lacking a 'when' property (it's auto-assigned). If any of the left/right objects change gameState.stage, then the sequence will be derailed.
 
-// A cardSet is one of the following:
-// - a staged cardSet; that is, an object with {when,cards} properties ('when' is auto-assigned to all cards in list)
-// - an array of cards or staged cardSets
+// Anywhere a cardSet or sequence can appear, there can alternatively be an object with a 'cards' property (that is an array), and any subset of the card properties listed below.
+// These properties are then inherited by all the cards in the 'cards' list.
 
-// Card properties
+// Card properties include
 //      weight: number, or callback which is passed the current gameState
 //    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
 //        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
@@ -16,8 +16,6 @@
 
 // Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 // There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
-
-// A 'sequence' is an array of cardSets lacking a 'when' property (it's auto-assigned). If any of the left/right objects change gameState.stage, then the sequence will be derailed.
 
 // Meter properties are as in Carder, but the 'level' callback is passed a gameState
 // Alternatively, if meter has no 'level' but has {min,max,init}, a property with the same name as the meter will be added to gameState, and its level autocomputed
@@ -31,16 +29,13 @@ const Dealer = (() => {
     return Object.prototype.toString.call(obj) === '[object Array]'
   }
 
-  function extend(dest, src, merge) {
-    var keys = Object.keys(src);
-    var i = 0;
-    while (i < keys.length) {
-      if (!merge || (merge && dest[keys[i]] === undefined)) {
-	dest[keys[i]] = src[keys[i]];
-      }
-      i++;
-    }
-    return dest;
+  function extend() {
+    const args = Array.from (arguments)
+    let dest = args[0], src = args[1]
+    Object.keys(src).forEach ((key) => dest[key] = src[key])
+    if (args.length > 2)
+      return extend.apply (null, [dest].concat (args.slice(2)))
+    return dest
   }
 
   const deepCopy = (inObject) => {
@@ -110,7 +105,7 @@ const Dealer = (() => {
     }, $.Deferred().resolve())
 
     // flatten nested sequences & cardSets, assign stages, wrap callbacks, init turn counters
-    this.flattenCardSet (cards)
+    this.flattenCardSet (cards, {})
     this.cards.forEach ((card, n) => {
       card.cardIndex = n
       card.left = card.left || {}
@@ -193,52 +188,70 @@ const Dealer = (() => {
       return '!' + (++this.anonStageCount)
     },
 
-    flattenCardSet: function (cardSet, stage) {
-      if (isArray(cardSet))
-        return cardSet.reduce ((list, card) => list.concat (this.flattenCardSet (card, stage)), [])
-      if (typeof(cardSet) === 'object' && cardSet.cards)
-        return this.flattenCardSet (cardSet.cards, cardSet.when)
-      return [this.flattenCard (cardSet, stage)]
+    cardProps: ['weight','priority','when','html','className','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool'],
+    
+    overrideProps: function (obj, props) {
+      let newProps = extend ({}, props)
+      this.cardProps.forEach ((prop) => {
+        if (obj.hasOwnProperty (prop))
+          newProps[prop] = obj[prop]
+      })
+      return newProps
     },
 
-    flattenCard: function (card, stage) {
+    flattenCardSet: function (cardSet, props) {
+      if (isArray(cardSet))
+        return cardSet.reduce ((list, card) => list.concat (this.flattenCardSet (card, props)), [])
+      if (typeof(cardSet) === 'object' && cardSet.cards)
+        return this.flattenCardSet (cardSet.cards, this.overrideProps (cardSet, props))
+      return [this.flattenCard (cardSet, props)]
+    },
+
+    flattenCard: function (card, props) {
       if (typeof(card) !== 'object')
         card = { html: this.evalString (card) }
       
-      let when = card.when || stage
+      let when = card.when || props.when
       card.when = when ? (isArray(when) ? when : when.split(/\s+/)) : undefined
-      if (card.next)
-        card.left = card.right = card.next
+      Object.keys(props).filter ((prop) => !card.hasOwnProperty(prop)).forEach ((prop) => card[prop] = props[prop])
+      if (card.next && !card.left)
+        card.left = card.next
+      if (card.next && !card.right)
+        card.right = card.next
       this.cards.push (card)
       if (card.left)
-        this.flattenSwiper (card.left)
+        this.flattenSwiper (card.left, props)
       if (card.right && card.right !== card.left)
-        this.flattenSwiper (card.right)
+        this.flattenSwiper (card.right, props)
 
       return card;
     },
 
-    flattenSwiper: function (swiper) {
+    flattenSwiper: function (swiper, props) {
       if (swiper.sequence) {
         let push = this.newAnonStage()
         swiper.push = (swiper.push || []).concat ([push])
-        this.flattenSequence (swiper.sequence, push)
+        this.flattenSequence (swiper.sequence, extend ({}, props, { when: push }))
       } else if (swiper.card) {
         swiper.stage = this.newAnonStage()
-        this.flattenCard (swiper.card, swiper.stage)
+        this.flattenCard (swiper.card, extend ({}, props, { when: swiper.stage }))
       } else if (swiper.cardSet) {
         swiper.stage = this.newAnonStage()
-        this.flattenCardSet (swiper.cardSet, swiper.stage)
+        this.flattenCardSet (swiper.cardSet, extend ({}, props, { when: swiper.stage }))
       }
     },
 
-    flattenSequence: function (sequence, stage) {
+    flattenSequence: function (sequence, props) {
+      if (!isArray(sequence) && typeof(sequence) === 'object' && sequence.cards)
+        return this.flattenSequence (sequence.cards, this.overrideProps (sequence, props))
       let stages = [], cardSets = []
       sequence.forEach ((cardSet, n) => {
-        cardSets.push (this.flattenCardSet (cardSet, stage))
-        stages.push (stage)
-        if (n !== sequence.length - 1)
-          stage = this.newAnonStage()
+        cardSets.push (this.flattenCardSet (cardSet, props))
+        stages.push (props.when)
+        if (n !== sequence.length - 1) {
+          let stage = this.newAnonStage()
+          props = extend ({}, props, { when: stage })
+        }
       })
       // hook up each step in the sequence to the next
       cardSets.forEach ((cardSet, n) => {
