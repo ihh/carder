@@ -482,20 +482,19 @@ const Carder = (() => {
                       height: height + 'px' }
 
         this.meters.reduce ((redrawn, meter) => {
-          let initHeight = meter.lastHeight, targetHeight = this.meterHeight(meter), delta = targetHeight - initHeight, newHeight, tintClass = '', tint = 0
+          let initHeight = meter.lastHeight, targetHeight = this.meterHeight(meter), delta = targetHeight - initHeight, tintClass = '', tint = 0
           if (typeof(initHeight) === 'undefined' || Math.abs(delta) < 1) {
-            newHeight = targetHeight
+            initHeight = targetHeight
             tintClass = ''
             tint = 0
           } else {
-            newHeight = initHeight
             tintClass = delta < 0 ? 'rising' : 'falling'
             tint = 1
             redrawNeeded = true
           }
           let meterDiv = $('<div class="meter">'), levelDiv, tintDiv
           newDivs.push (meterDiv)
-          const clipRect = this.meterClipRect (newHeight)
+          const clipRect = this.meterClipRect (initHeight)
           return redrawn.then (() => {
             meter.iconPromise.then ((svg) => {
               function makeMeter() {
