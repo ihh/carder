@@ -12,8 +12,10 @@
 - Straightforward to extend in JavaScript for more ambitious designers
 - Uses the [Swing](https://github.com/gajus/swing) library for card drag and throw animations
 - Includes animated prompts to swipe cards
+- Left & right buttons provided for clients where dragging doesn't work
 - Runs entirely in the web client (so, portable to most phones)
 - State persists over page reloads
+- If you want, you can test everything from a terminal prompt, for an old-skool debugging experience
 
 # Modules
 
