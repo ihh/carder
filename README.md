@@ -4,6 +4,11 @@ This project contains several modules: Carder, Dealer, and FakeCarder.
 
 The project is very hackily put together... sorry!
 No React, no tests, dodgy CSS... Maybe this will change as if it moves forward... I wouldn't count on it, though.
+It is open source, so please feel free to grab it.
+If you do want to commercialize it, I'd love to work with you, but at this point it's just out there.
+
+I would be potentially interested in collaborating with a writer to develop a more substantial
+interactive fiction game using this code (which could be what nudges this into becoming a higher-priority commitment for me).
 
 ## Carder
 
