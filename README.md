@@ -1,6 +1,6 @@
 # Carder
 
-![](example/WizardSchool.gif)
+![](example/MagicSchool.gif)
 
 - Simple library for card-swiping interactive fiction projects
 - Specify a collection of swipable cards as a JSON object
@@ -44,6 +44,10 @@ The Carder API is deliberately minimal, focusing just on the UI, and leaving the
 (see Dealer, below).
 
 For a basic demo (illustrating only the functionality, no content) see [here](https://ihh.github.io/carder/).
+
+The rest of this document is probably readable only by people with some programming experience.
+Eventually I'd like to write this up for more general use, but in the meantime:
+**if you are a writer who is interested in collaborating, please [get in touch](https://twitter.com/ianholmes/status/1366082361436217344)**.
 
 ~~~~
 $(document).ready (() => {
