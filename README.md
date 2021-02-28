@@ -1,6 +1,6 @@
-![](example/WizardSchool.gif)
-
 # Carder
+
+![](example/WizardSchool.gif)
 
 - Simple library for card-swiping interactive fiction projects
 - Specify a collection of swipable cards as a JSON object
