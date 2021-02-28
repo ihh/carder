@@ -80,7 +80,7 @@ Dealer does not add to the Carder UI, and can be run with FakeCarder instead of 
 
 A basic demo with a few boring test cards is [here](https://ihh.github.io/carder/example/).
 
-Here's the code from that demo, which gives a bit of a flavor of the API:
+Here's the code from that demo, which gives a bit of a flavor of the API (just nonsense text, sorry, this was more of an API test than an actual worked example):
 
 ~~~~
 let c, d
