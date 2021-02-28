@@ -6,6 +6,9 @@
 - Specify a collection of swipable cards as a JSON object
 - Add graphical status meters at the top of the page
 - Cards can have hints, previews, effects
+- Configurable status page can include accomplishments, clues
+- A broad range of card-swiping game logic can be handled by the built-in engine
+- Straightforward to extend in JavaScript for more ambitious designers
 - Uses the [Swing](https://github.com/gajus/swing) library for card drag and throw animations
 - Includes animated prompts to swipe cards
 - Runs entirely in the web client (so, portable to most phones)
