@@ -62,15 +62,47 @@ FakeCarder has an identical API to Carder, but can be run on the command-line in
 ## Dealer
 
 Dealer is a basic game engine built on top of Carder, essentially a big state machine with a collection of cards at each node.
-It transparently handles persistence of state over page reloads,
+It transparently handles persistence of game state over page reloads,
 as well as a few other things (like automatically hooking up previews and consequences for choices that affect meter stats,
 sequencing cards, batching cards, and a set of flexible conditions under which cards can be presented which include
-priorities, probabilities, and flags allowing cards to be delayed, one-shot, never repeated consecutively, etc.)
+priorities, probabilities (which can be dynamically computed from the current game state),
+and various flags and modifiers e.g. allowing cards to be dealt only before/after a certain amount of moves,
+or limiting the number of times they can be used,
+or preventing them from being repeated consecutively by having a cooldown period, etc.)
 
 Dealer does not add to the Carder UI, and can be run with FakeCarder instead of Carder to test from the command line
 (with lots of debugging info).
 
 A basic demo with a few boring test cards is [here](https://ihh.github.io/carder/example/).
+
+Here's the code from that demo, which gives a bit of a flavor of the API:
+
+~~~~
+let c, d
+$(document).ready (() => {
+  c = new Carder ({ iconPrefix: '../img/' })
+  const config = {
+    carder: c,
+    debug: true,
+    meterIconPrefix: '../meters/',
+    meters: [{ name: 'coins' },
+             { name: 'castle' }],
+    cards: [{ html: 'hello', priority: 2, limit: 1, left: { reward: { coins: .1 } } },
+            { html: 'world', priority: 1, limit: 1 },
+            { when: 'start',
+              className: 'title',
+              cards: [{ html: 'filler', cool: 1 },
+                      { html: 'test card',
+                        limit: 2,
+                        cool: 1,
+                        left: { scaledReward: { coins: .1 }, sequence: { className: 'bonus', cards: [{className:"warning",html:"one"},["two",2],"three"] } },
+                        right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] },
+                      { html: 'Time passes...', priority: -1 }],
+    status: (gs) => `Coins=${gs.coins} Castle=${gs.castle}` }
+  d = new Dealer (config)
+  d.dealFirstCard()
+})
+~~~~
 
 ### Dealer documentation
 
@@ -88,12 +120,12 @@ These properties are then inherited by all the cards in the 'cards' list.
 Card properties include
      weight: number, or callback which is passed the current gameState
    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
-       when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
-       html: string, or callback to generate content from current gameState
+ when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
+ html: string, or callback to generate content from current gameState
   className: string
 left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
 limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
-       cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
+ cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
 
 Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
