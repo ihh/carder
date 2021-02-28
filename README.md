@@ -5,9 +5,10 @@
 - Simple library for card-swiping interactive fiction projects
 - Specify a collection of swipable cards as a JSON object
 - Add graphical status meters at the top of the page
-- Cards can have hints, previews, effects
+- Cards can have images, hints, previews, effects
 - Configurable status page can include accomplishments, clues
 - A broad range of card-swiping game logic can be handled by the built-in engine
+- Cards can be shuffled, staged, usage-limited, conditional on various things...
 - Straightforward to extend in JavaScript for more ambitious designers
 - Uses the [Swing](https://github.com/gajus/swing) library for card drag and throw animations
 - Includes animated prompts to swipe cards
