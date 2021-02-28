@@ -125,12 +125,13 @@ These properties are then inherited by all the cards in the 'cards' list.
 Card properties include
      weight: number, or callback which is passed the current gameState
    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
- when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
- html: string, or callback to generate content from current gameState
+       when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
+       html: string, or callback to generate content from current gameState
   className: string
 left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
-limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
- cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
+       cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
+limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns:
+             limit when/how many times a particular card can be dealt.
 
 Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
