@@ -1,9 +1,19 @@
-# carder
+![](example/WizardSchool.gif)
+
+# Carder
+
+- Simple library for card-swiping interactive fiction projects
+- Specify a collection of swipable cards as a JSON object
+- Add graphical status meters at the top of the page
+- Cards can have hints, previews, effects
+- Uses the [Swing](https://github.com/gajus/swing) library for card drag and throw animations
+- Includes animated prompts to swipe cards
+- Runs entirely in the web client (so, portable to most phones)
+- State persists over page reloads
+
+# Modules
 
 This project contains several modules: Carder, Dealer, and FakeCarder.
-
-I would be potentially interested in collaborating with a writer to develop a more substantial
-interactive fiction game using this code (which could be what nudges this into becoming a higher-priority commitment for me).
 
 ## Carder
 
