@@ -144,9 +144,12 @@ Card properties include
        html: string, or callback to generate content from current gameState
    cssClass: string
 left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
-       cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
 limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns:
              limit when/how many times a particular card can be dealt.
+       cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
+       type: string that identifies the type of this card. Used by typeLimit and typeCool
+  typeLimit: like 'limit', but specifies an upper bound on the number of times a card of this *type* can be dealt (not just this card)
+   typeCool: like 'cool', but specifies a lower bound on the number of turns that must have passed at this stage before a card of this type was last dealt
 
 Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.

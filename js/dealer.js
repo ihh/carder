@@ -13,6 +13,9 @@
 // left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
 // limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
 //        cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
+//        type: string that identifies the type of this card. Used by typeLimit and typeCool
+//   typeLimit: like 'limit', but specifies an upper bound on the number of times a card of this *type* can be dealt (not just this card)
+//    typeCool: like 'cool', but specifies a lower bound on the number of turns that must have passed at this stage before a card of this type was last dealt
 
 // Anywhere a card can go, there can just be a string, which is assumed to be the card's html; the card has no swipers (left & right attributes).
 // There can also just be a function, in which case it is evaluated (with gameState as argument) and then treated as if it were just a string.
@@ -191,7 +194,7 @@ const Dealer = (() => {
       return '!' + (++this.anonStageCount)
     },
 
-    cardProps: ['weight','priority','when','html','cssClass','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool'],
+    cardProps: ['weight','priority','when','html','cssClass','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool','type','typeLimit','typeCool'],
     
     overrideProps: function (obj, props) {
       let newProps = extend ({}, props)
@@ -326,15 +329,25 @@ const Dealer = (() => {
       console.log()
       console.log(JSON.stringify({gameState}))
 
+      let typeTurns = {}
+      Object.keys(gs.turns.byCard).forEach ((cardIndexStr) => {
+        const cardIndex = parseInt (cardIndexStr)
+        const type = this.cards[cardIndex].type
+        if (type)
+          typeTurns[type] = (typeTurns[type] || 0) + 1
+      })
+
       // Use the weight, turn limit, cool-off, and/or priority rules to arrive at a weight distribution over cards
       // Weights & turn limits
       let cardWeight = this.cards.map ((card) => {
         if (card.when && card.when.length && card.when.filter ((when) => when === stage).length === 0)
           return 0
         let turnsByCard = gs.turns.byCard[card.cardIndex]
+        let turnsByType = card.type ? typeTurns[card.type] : turnsByCard
         let turnsByStage = gs.turns.byStage[gs.turns.byStage.length-1]
         let turnsTotalByStage = gs.turns.totalByStage[stage]
         if ((card.limit && turnsByCard >= card.limit)
+            || (card.typeLimit && turnsByType >= card.typeLimit)
             || (card.minTurnsAtStage && turnsByStage < card.minTurnsAtStage)
             || (card.maxTurnsAtStage && turnsByStage > card.maxTurnsAtStage)
             || (card.minTotalTurnsAtStage && turnsTotalByStage < card.minTotalTurnsAtStage)
@@ -363,6 +376,22 @@ const Dealer = (() => {
       })
       let maxTurnsSinceCool = Math.max.apply (Math, turnsSinceCool.filter ((x) => typeof(x) !== 'undefined'))
       cardWeight = cardWeight.map ((w, n) => (turnsSinceCool[n] > 0 || turnsSinceCool[n] === maxTurnsSinceCool) ? w : 0)
+      // Cool-off by type
+      let typeHistory = history.map ((cardIndexStr) => this.cards[parseInt(cardIndexStr)].type)
+      let turnsSinceTypeCool = this.cards.map ((card, n) => {
+        let tsc
+        if (cardWeight[n] > 0) {
+          tsc = history.length
+          if (card.typeCool) {
+            let last = history.lastIndexOf(card.type || card.cardIndex)
+            if (last >= 0)
+              tsc = history.length - last - (card.typeCool || 0)
+          }
+          return tsc
+        }
+      })
+      let maxTurnsSinceTypeCool = Math.max.apply (Math, turnsSinceTypeCool.filter ((x) => typeof(x) !== 'undefined'))
+      cardWeight = cardWeight.map ((w, n) => (turnsSinceTypeCool[n] > 0 || turnsSinceTypeCool[n] === maxTurnsSinceTypeCool) ? w : 0)
       // Priority
       let maxPriority = this.cards.reduce ((mp, card, n) => {
         let priority = card.priority || 0
