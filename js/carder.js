@@ -207,7 +207,7 @@ const Carder = (() => {
 
       carder.cardBodyDiv = $('<div class="cardbody">')
       let innerDiv = $('<div class="inner">').html ($('<div class="content">').html (config.html))
-      let cardDiv = $('<div class="card">').addClass (config.className || this.defaultCardClass).html (innerDiv)
+      let cardDiv = $('<div class="card">').addClass (config.cssClass || this.defaultCardClass).html (innerDiv)
       if (config.align)
         cardDiv.addClass ('aligntop')
       if (carder.doAnimations())

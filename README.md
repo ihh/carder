@@ -110,12 +110,12 @@ $(document).ready (() => {
     cards: [{ html: 'hello', priority: 2, limit: 1, left: { reward: { coins: .1 } } },
             { html: 'world', priority: 1, limit: 1 },
             { when: 'start',
-              className: 'title',
+              cssClass: 'title',
               cards: [{ html: 'filler', cool: 1 },
                       { html: 'test card',
                         limit: 2,
                         cool: 1,
-                        left: { scaledReward: { coins: .1 }, sequence: { className: 'bonus', cards: [{className:"warning",html:"one"},["two",2],"three"] } },
+                        left: { scaledReward: { coins: .1 }, sequence: { cssClass: 'bonus', cards: [{cssClass:"warning",html:"one"},["two",2],"three"] } },
                         right: { stage: 'muppet', scaledReward: { coins: -.1 }, reward: { castle: .2 } } }] },
                       { html: 'Time passes...', priority: -1 }],
     status: (gs) => `Coins=${gs.coins} Castle=${gs.castle}` }
@@ -142,7 +142,7 @@ Card properties include
    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
        html: string, or callback to generate content from current gameState
-  className: string
+   cssClass: string
 left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
        cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
 limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns:

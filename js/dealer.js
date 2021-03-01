@@ -9,7 +9,7 @@
 //    priority: zero by default. Only cards with the highest priority and nonzero weight are eligible to be dealt
 //        when: if present, must be a string (split into array of strings), one of which must match the last element of the gameState.stage array
 //        html: string, or callback to generate content from current gameState
-//   className: string
+//    cssClass: string
 // left, right: optional swiper objects that can contain { hint, preview, meters, reward, scaledReward, stage, push, pop, cb, card, sequence, cardSet }
 // limit, minTurnsAtStage, maxTurnsAtStage, minTotalTurnsAtStage, maxTotalTurnsAtStage, minTurns, maxTurns: limit when/how many times a particular card can be dealt.
 //        cool: cooling-off period i.e. number of cards dealt *from the same stage* before the card can be dealt again
@@ -191,7 +191,7 @@ const Dealer = (() => {
       return '!' + (++this.anonStageCount)
     },
 
-    cardProps: ['weight','priority','when','html','className','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool'],
+    cardProps: ['weight','priority','when','html','cssClass','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool'],
     
     overrideProps: function (obj, props) {
       let newProps = extend ({}, props)
@@ -395,7 +395,7 @@ const Dealer = (() => {
       html = html || this.evalString (template.html)
       return {
         html,
-        className: template.className,
+        cssClass: template.cssClass,
         left: this.evalSwiper (template.left),
         right: this.evalSwiper (template.right),
         cardIndex: template.cardIndex   // not used by Carder, but used by FakeCarder for debugging

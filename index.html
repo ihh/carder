@@ -21,7 +21,7 @@
 	c.setRestart (() => { c.reset(); dealFirstCard() })
 	function deal (message, type) {
 	  c.dealCard ({ html: message,
-			className: type,
+			cssClass: type,
 			align: type === 'title',
 			left: {
 			  hint: 'very long left hint text',
