@@ -194,7 +194,7 @@ const Dealer = (() => {
       return '!' + (++this.anonStageCount)
     },
 
-    cardProps: ['weight','priority','when','html','cssClass','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool','type','typeLimit','typeCool'],
+    cardProps: ['weight','priority','when','html','cssClass','next','left','right','limit','minTurnsAtStage','maxTurnsAtStage','minTotalTurnsAtStage','maxTotalTurnsAtStage','minTurns','maxTurns','cool','type','typeLimit','typeCool'],
     
     overrideProps: function (obj, props) {
       let newProps = extend ({}, props)
